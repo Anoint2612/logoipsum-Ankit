@@ -21,7 +21,7 @@ export default function SocialLinks() {
 
   const fetchSocialLinks = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/creator/social-links');
+      const res = await axios.get('http://localhost:5000/api/admin/social-links');
       if (res.data) setLinks(res.data);
     } catch (err) {
       console.error(err);
@@ -33,7 +33,7 @@ export default function SocialLinks() {
   const handleSave = async (platform: string) => {
     setSaving(platform);
     try {
-      await axios.post('http://localhost:5000/api/creator/social-links', {
+      await axios.post('http://localhost:5000/api/admin/social-links', {
          platform, 
          url: links[platform as keyof typeof links]
       });

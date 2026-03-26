@@ -147,7 +147,7 @@ export default function UsersPage() {
                   </td>
                   <td className="px-6 py-4 text-right pr-6">
                     <div className="flex justify-end gap-2 text-slate-600">
-                       <a href={`/creator/users/${user._id}`} className="p-1.5 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors border border-slate-200 shadow-sm relative group">
+                       <a href={`/admin/users/${user._id}`} className="p-1.5 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors border border-slate-200 shadow-sm relative group">
                          <Eye className="w-4 h-4" />
                        </a>
                        <button onClick={() => deleteUser(user._id)} className="p-1.5 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors border border-slate-200 shadow-sm relative group">

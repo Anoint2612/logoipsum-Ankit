@@ -16,7 +16,7 @@ export default function ManagePosts() {
 
   const fetchPosts = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/creator/posts');
+      const res = await axios.get('http://localhost:5000/api/admin/posts');
       setPosts(res.data);
     } catch (err) {
       console.error(err);
@@ -31,7 +31,7 @@ export default function ManagePosts() {
 
   const handleDelete = async (id: string) => {
     try {
-      await axios.delete(`http://localhost:5000/api/creator/posts/${id}`);
+      await axios.delete(`http://localhost:5000/api/admin/posts/${id}`);
       setPosts(posts.filter(p => p._id !== id));
     } catch (err) {
       console.error(err);

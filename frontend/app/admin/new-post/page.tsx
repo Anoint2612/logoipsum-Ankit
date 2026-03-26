@@ -44,7 +44,7 @@ export default function NewPost() {
     formData.append('isExclusive', isExclusive.toString());
 
     try {
-      await axios.post('http://localhost:5000/api/creator/posts', formData, {
+      await axios.post('http://localhost:5000/api/admin/posts', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         },

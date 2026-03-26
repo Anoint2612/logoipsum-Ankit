@@ -7,10 +7,12 @@ const {
   updatePost,
   deletePost,
   updateSocialLinks,
-  getSocialLinks
+  getSocialLinks,
+  getInsightsData
 } = require('../controllers/creatorController');
 
 router.get('/dashboard', getDashboardData);
+router.get('/insights', getInsightsData);
 
 // Post routing
 router.post('/posts', createPost);

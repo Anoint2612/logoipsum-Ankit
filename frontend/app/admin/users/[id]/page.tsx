@@ -50,7 +50,7 @@ export default function UserDetailsPage({ params }: { params: { id: string } }) 
       
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 mb-6 text-sm font-semibold">
-        <a href="/creator/users" className="text-slate-500 hover:text-slate-800">Users</a>
+        <a href="/admin/users" className="text-slate-500 hover:text-slate-800">Users</a>
         <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
         <span className="text-slate-800">{user.name}</span>
       </div>

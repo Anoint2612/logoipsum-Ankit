@@ -156,6 +156,51 @@ const getSocialLinks = async (req, res) => {
   }
 };
 
+const getInsightsData = async (req, res) => {
+  try {
+    let creator = await Creator.findOne({ userId: 'default_user_1' });
+    if (!creator) creator = await Creator.create({ userId: 'default_user_1' });
+    
+    // Mock Audience Stats
+    const audienceStats = {
+      totalUsers: 200,
+      activeUsers: 4000,
+      profileVisitsRenown: 1500,
+      profileVisitsDirect: 1500
+    };
+    
+    // Mock Sales Stats
+    const salesStats = {
+      totalSales: 200,
+      conversionRate: '20%'
+    };
+    
+    // Mock Memberships Stats
+    const membershipStats = {
+      totalMemberships: 200,
+      totalMembershipMembers: 200,
+      cancelledMembers: 4000,
+      conversionRate: '15%'
+    };
+
+    // Revenue chart data
+    const revenueChart = [
+      { date: '20 March, 2026', title: 'Membership name', free: 30, membership: 10, revenue: 600 },
+      { date: '21 March, 2026', title: 'Membership name', free: 35, membership: 12, revenue: 800 },
+      { date: '22 March, 2026', title: 'Membership name', free: 40, membership: 15, revenue: 1000 },
+    ];
+
+    res.json({
+      audienceStats,
+      salesStats,
+      membershipStats,
+      revenueChart
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 module.exports = {
   getDashboardData,
   createPost,
@@ -163,5 +208,6 @@ module.exports = {
   updatePost,
   deletePost,
   updateSocialLinks,
-  getSocialLinks
+  getSocialLinks,
+  getInsightsData
 };

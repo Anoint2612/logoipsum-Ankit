@@ -1,4 +1,6 @@
-import React from 'react';
+'use client';
+
+import React, { use } from 'react';
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
 import DashboardSidebar from '@/src/components/UserDashboard/DashboardSidebar';
@@ -6,7 +8,9 @@ import LivestreamPlayer from '@/src/components/CreatorProfile/LivestreamPlayer';
 import CreatorHeader from '@/src/components/CreatorProfile/CreatorHeader';
 import LivestreamComments from '@/src/components/CreatorProfile/LivestreamComments';
 
-export default function CreatorProfilePage() {
+export default function LivestreamPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+
   return (
     <div className="min-h-screen bg-[var(--bg,#f6f4f1)] flex relative overflow-x-hidden">
       <DashboardSidebar />
@@ -16,7 +20,7 @@ export default function CreatorProfilePage() {
         
         {/* Back Button positioned absolute top-left */}
         <div className="absolute top-[42px] left-[42px]">
-          <Link href="/user/creator" className="flex items-center gap-[4px] px-[8px] py-[4px] border border-[var(--input-field-border,#d8d1c7)] rounded-[36px] bg-[var(--bg-2,#faf8f5)] hover:bg-[#f0f0f0] transition-colors shadow-sm">
+          <Link href={`/user/creators/${id}`} className="flex items-center gap-[4px] px-[8px] py-[4px] border border-[var(--input-field-border,#d8d1c7)] rounded-[36px] bg-[var(--bg-2,#faf8f5)] hover:bg-[#f0f0f0] transition-colors shadow-sm">
             <ChevronLeft className="size-[20px] text-[var(--heading,#1a1a1a)]" />
             <span className="font-[family-name:var(--font-figtree)] font-medium text-[16px] leading-[25.8px] tracking-[0.32px] text-[var(--heading,#1a1a1a)] pr-2">
               Back

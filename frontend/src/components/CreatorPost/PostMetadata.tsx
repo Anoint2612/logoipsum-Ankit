@@ -1,6 +1,14 @@
 import Link from 'next/link';
 
-export default function PostMetadata() {
+interface PostMetadataProps {
+  creatorName?: string;
+  category?: string;
+  price?: number;
+  likes?: number;
+  comments?: number;
+}
+
+export default function PostMetadata({ creatorName, category, price, likes, comments }: PostMetadataProps) {
   return (
     <div className="flex justify-between items-start w-full max-w-[1119px] shrink-0 mt-[20px]">
       
@@ -8,19 +16,19 @@ export default function PostMetadata() {
       <div className="flex flex-col font-['Figtree',sans-serif] font-medium gap-[8px] items-start justify-center text-[16px] tracking-[0.32px] w-[612px]">
         
         <p className="text-[#5a5a5a] w-full">
-          Creator : Riya’s Fitness
+          Creator : {creatorName || "Riya’s Fitness"}
         </p>
         
         <div className="flex gap-[16px] items-start w-full whitespace-nowrap">
-          <p className="text-[#5a5a5a]">Starts in : 4Hours</p>
+          <p className="text-[#5a5a5a]">Likes : {likes !== undefined ? likes : "4.8K"}</p>
           <span className="text-[#9a9a9a]">|</span>
-          <p className="text-[#5a5a5a]">Rating : 4.8/5</p>
+          <p className="text-[#5a5a5a]">Comments : {comments !== undefined ? comments : "320"}</p>
           <span className="text-[#9a9a9a]">|</span>
-          <p className="text-[#5a5a5a]">Enrolled : 2,400 Fans</p>
+          <p className="text-[#5a5a5a]">Category : {category || "Fitness"}</p>
         </div>
         
         <div className="flex gap-[16px] items-start w-full whitespace-nowrap">
-          <p className="text-[#5a5a5a]">Duration : 1Hour 30Min</p>
+          <p className="text-[#5a5a5a]">Price : {price !== undefined ? `$${price}` : "Free"}</p>
           <span className="text-[#9a9a9a]">|</span>
           <p className="text-[#5a5a5a]">Language : English, hindi</p>
           <span className="text-[#9a9a9a]">|</span>

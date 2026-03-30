@@ -1,4 +1,8 @@
-export default function PostDetails() {
+interface PostDetailsProps {
+  description?: string;
+}
+
+export default function PostDetails({ description }: PostDetailsProps = {}) {
   return (
     <div className="flex flex-col gap-[16px] items-start w-full max-w-[1119px] shrink-0 mt-[20px]">
       
@@ -18,11 +22,17 @@ export default function PostDetails() {
           About The Event
         </h3>
         <div className="flex flex-col gap-[12px] font-['Figtree',sans-serif] font-medium text-[#5a5a5a] text-[16px] tracking-[0.32px] w-full">
-          <p className="leading-[25.8px] m-0">If you’ve been trying to lose weight but keep falling off track, this challenge is designed to finally make things simple, structured, and achievable.</p>
-          <p className="leading-[25.8px] m-0">The 30-Day Home Fat Loss Challenge is a complete transformation program built for beginners, working professionals, and anyone who wants results without complicated gym routines or strict dieting. This isn’t just a workout plan — it’s a guided system that helps you stay consistent every single day. You’ll follow a day-by-day schedule that includes short, effective workouts combined with practical nutrition guidance. Each workout is designed to burn fat, improve stamina, and gradually build strength — all from the comfort of your home.</p>
-          <p className="leading-[25.8px] m-0">Along with fitness, the program focuses on building sustainable habits. You’ll learn how to manage your meals, control cravings, and stay motivated even on busy days.</p>
-          <p className="leading-[25.8px] m-0">To keep you engaged, the challenge includes progress tracking tools, weekly check-ins, and a supportive private community where you can interact with others on the same journey.</p>
-          <p className="leading-[25.8px] m-0">By the end of 30 days, you won’t just see physical changes you’ll build a routine that you can continue long after the challenge ends.</p>
+          {description ? (
+            <p className="leading-[25.8px] m-0 whitespace-pre-wrap">{description}</p>
+          ) : (
+            <>
+              <p className="leading-[25.8px] m-0">If you’ve been trying to lose weight but keep falling off track, this challenge is designed to finally make things simple, structured, and achievable.</p>
+              <p className="leading-[25.8px] m-0">The 30-Day Home Fat Loss Challenge is a complete transformation program built for beginners, working professionals, and anyone who wants results without complicated gym routines or strict dieting. This isn’t just a workout plan — it’s a guided system that helps you stay consistent every single day. You’ll follow a day-by-day schedule that includes short, effective workouts combined with practical nutrition guidance. Each workout is designed to burn fat, improve stamina, and gradually build strength — all from the comfort of your home.</p>
+              <p className="leading-[25.8px] m-0">Along with fitness, the program focuses on building sustainable habits. You’ll learn how to manage your meals, control cravings, and stay motivated even on busy days.</p>
+              <p className="leading-[25.8px] m-0">To keep you engaged, the challenge includes progress tracking tools, weekly check-ins, and a supportive private community where you can interact with others on the same journey.</p>
+              <p className="leading-[25.8px] m-0">By the end of 30 days, you won’t just see physical changes you’ll build a routine that you can continue long after the challenge ends.</p>
+            </>
+          )}
         </div>
       </div>
 

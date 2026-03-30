@@ -456,6 +456,16 @@ const sendMessage = async (req, res) => {
             mediaUrl,
             mediaType
         });
+
+        // Create a notification for the recipient
+        await Notification.create({
+            recipient: recipientId,
+            sender: req.user._id,
+            type: 'message',
+            content: `You received a new message from ${req.user.name}`,
+            relatedId: message._id
+        });
+
         res.status(201).json(message);
     } catch (err) {
         res.status(500).json({ error: err.message });

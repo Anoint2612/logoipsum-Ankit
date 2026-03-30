@@ -9,8 +9,13 @@ const {
   toggleFollowCreator,
   getFollowingCreators,
   searchCreators,
-  getLiveStreams
+  getLiveStreams,
 } = require('../controllers/userController');
+
+const {
+  getMessages,
+  sendMessage
+} = require('../controllers/creatorController');
 
 // Public routes
 router.get('/creators', getCreators);
@@ -21,6 +26,8 @@ router.get('/livestreams', getLiveStreams);
 
 // Protected routes (for Fans/Users)
 router.use(protect);
+router.get('/messages', getMessages);
+router.post('/messages', sendMessage);
 router.get('/following', getFollowingCreators);
 router.post('/follow/:creatorId', toggleFollowCreator);
 router.get('/posts/:id', getPostDetails);

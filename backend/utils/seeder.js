@@ -1,9 +1,8 @@
-require('dotenv').config();
+require('dotenv').config({ path: './backend/.env' });
 const mongoose = require('mongoose');
 const User = require('../models/User');
 const Creator = require('../models/Creator');
 const Post = require('../models/Post');
-const Subscriber = require('../models/Subscriber');
 const AdminData = require('../models/AdminData');
 const connectDB = require('../config/db');
 
@@ -16,7 +15,6 @@ const seedData = async () => {
         await User.deleteMany({});
         await Creator.deleteMany({});
         await Post.deleteMany({});
-        await Subscriber.deleteMany({});
 
         // 0. Create Users
         console.log('Seeding Users...');
@@ -42,6 +40,8 @@ const seedData = async () => {
             username: 'alexcreates',
             avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200&h=200&fit=crop',
             bio: 'Digital Artist & Content Creator. 📸 Adventure Photography | 🎨 Digital Art | 🌴 Lifestyle vlogs',
+            category: 'Art and Design',
+            status: 'active',
             socialLinks: {
                 instagram: 'https://instagram.com/alexcreates',
                 facebook: 'https://facebook.com/alexmorgan.official',
@@ -54,20 +54,27 @@ const seedData = async () => {
             }
         });
 
-        // 2. Create Subscribers
-        console.log('Seeding Subscribers...');
-        const subscribersData = [
-            { userId: 'sub_1', username: 'Jane Doe', joinDate: new Date('2026-01-10'), status: 'active', subscriptionTier: 'Premium' },
-            { userId: 'sub_2', username: 'John Smith', joinDate: new Date('2026-02-15'), status: 'active', subscriptionTier: 'Standard' },
-            { userId: 'sub_3', username: 'Emma Watson', joinDate: new Date('2026-03-01'), status: 'active', subscriptionTier: 'Premium' },
-            { userId: 'sub_4', username: 'Bob Marley', joinDate: new Date('2026-03-05'), status: 'active', subscriptionTier: 'Standard' },
-            { userId: 'sub_5', username: 'Mike Tyson', joinDate: new Date('2026-03-20'), status: 'active', subscriptionTier: 'Premium' },
-            { userId: 'sub_6', username: 'Sarah Connor', joinDate: new Date('2026-03-25'), status: 'active', subscriptionTier: 'Standard' },
-        ];
-        
-        for (const sub of subscribersData) {
-            await Subscriber.create({ ...sub, creatorId: creator._id });
-        }
+        // Add a second creator for variety
+        console.log('Seeding Second Creator...');
+        const creatorUser2 = await User.create({
+          name: 'Sarah Jenkins',
+          email: 'sarah@test.com',
+          password: 'password123',
+          role: 'creator'
+        });
+
+        const creator2 = await Creator.create({
+          userId: creatorUser2._id.toString(),
+          name: 'Sarah Jenkins',
+          username: 'sarahcreates',
+          avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop',
+          bio: 'Yoga Instructor & Wellness Coach. 🧘‍♀️ Mindfulness | 🥗 Healthy Eating | ✨ Spiritual Growth',
+          category: 'Lifestyle',
+          status: 'active',
+          socialLinks: {
+            instagram: 'https://instagram.com/sarahwellness'
+          }
+        });
 
         // 3. Create Posts
         console.log('Seeding Posts...');
@@ -132,6 +139,16 @@ const seedData = async () => {
         for (const post of postsData) {
             await Post.create({ ...post, creatorId: creator._id });
         }
+
+        // Seed some posts for creator2
+        await Post.create({
+          title: 'Morning Yoga Routine',
+          description: 'Start your day with these simple stretches.',
+          mediaUrl: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&q=80',
+          mediaType: 'image',
+          creatorId: creator2._id,
+          status: 'published'
+        });
 
         console.log('Database Seeding Complete!');
         process.exit(0);

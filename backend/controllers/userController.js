@@ -6,8 +6,20 @@ const Post = require('../models/Post');
 // @route   GET /api/user/creators
 exports.getCreators = async (req, res) => {
   try {
-    const creators = await Creator.find({}).sort({ followers: -1 });
-    res.json(creators);
+    const creators = await Creator.find({ status: 'active' }).sort({ createdAt: -1 });
+    
+    // Attach recent posts to each creator
+    const creatorsWithPosts = await Promise.all(creators.map(async (creator) => {
+      const posts = await Post.find({ creatorId: creator._id, status: 'published' })
+        .sort({ createdAt: -1 })
+        .limit(6);
+      return {
+        ...creator._doc,
+        posts
+      };
+    }));
+
+    res.json(creatorsWithPosts);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

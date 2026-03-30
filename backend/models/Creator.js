@@ -7,6 +7,7 @@ const creatorSchema = mongoose.Schema(
     username: { type: String, default: 'alexcreates' },
     avatar: { type: String, default: 'https://i.pravatar.cc/150' },
     bio: { type: String, default: 'Digital Artist and Photographer. Welcome to my exclusive content area.' },
+    category: { type: String, default: 'Art and Design' },
     status: { type: String, enum: ['active', 'inactive'], default: 'active' },
     socialLinks: {
       instagram: { type: String, default: '' },

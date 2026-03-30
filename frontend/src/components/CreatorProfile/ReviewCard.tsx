@@ -40,7 +40,7 @@ const NestedReply = ({
   reply: ReviewReply, 
   allReplies: ReviewReply[], 
   reviewId: string, 
-  onReplyAdded: (r: ReviewReply) => void 
+  onReplyAdded: () => void 
 }) => {
   const { token } = useAuthStore();
   const [showReplyInput, setShowReplyInput] = useState(false);
@@ -58,11 +58,11 @@ const NestedReply = ({
 
     setSubmittingReply(true);
     try {
-      const res = await api.post(`/user/reviews/${reviewId}/replies`, { 
+      await api.post(`/user/reviews/${reviewId}/replies`, { 
         content: replyText,
         parentReplyId: reply._id
       });
-      onReplyAdded(res.data);
+      onReplyAdded();
       setReplyText('');
       setShowReplyInput(false);
       toast.success('Reply added!');
@@ -163,6 +163,17 @@ export default function ReviewCard({ reviewId, avatarSrc, name, reviewText, crea
   const [replyText, setReplyText] = useState('');
   const [submittingReply, setSubmittingReply] = useState(false);
 
+  const fetchReplies = async () => {
+    try {
+      const res = await api.get(`/user/reviews/${reviewId}/replies`);
+      setReplies(res.data);
+      setRepliesLoaded(true);
+    } catch (err) {
+      console.error("Error fetching replies:", err);
+      toast.error("Could not load replies");
+    }
+  };
+
   /*// Simple relative time formatter
   const getRelativeTime = (dateString: string) => {
     const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
@@ -183,16 +194,8 @@ export default function ReviewCard({ reviewId, avatarSrc, name, reviewText, crea
     if (!showReplies) {
       if (!repliesLoaded) {
         setLoadingReplies(true);
-        try {
-          const res = await api.get(`/user/reviews/${reviewId}/replies`);
-          setReplies(res.data);
-          setRepliesLoaded(true);
-        } catch (err) {
-          console.error("Error fetching replies:", err);
-          toast.error("Could not load replies");
-        } finally {
-          setLoadingReplies(false);
-        }
+        await fetchReplies();
+        setLoadingReplies(false);
       }
     }
     setShowReplies(!showReplies);
@@ -211,12 +214,13 @@ export default function ReviewCard({ reviewId, avatarSrc, name, reviewText, crea
 
     setSubmittingReply(true);
     try {
-      const res = await api.post(`/user/reviews/${reviewId}/replies`, { content: replyText });
-      setReplies([...replies, res.data]);
+      await api.post(`/user/reviews/${reviewId}/replies`, { content: replyText });
+      
+      await fetchReplies();
+      
       setReplyText('');
       setShowReplyInput(false);
       setShowReplies(true);
-      setRepliesLoaded(true);
       toast.success('Reply added!');
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to post reply');
@@ -298,7 +302,7 @@ export default function ReviewCard({ reviewId, avatarSrc, name, reviewText, crea
                 reply={reply} 
                 allReplies={replies} 
                 reviewId={reviewId} 
-                onReplyAdded={(newReply) => setReplies([...replies, newReply])}
+                onReplyAdded={fetchReplies}
               />
             ))
           ) : (

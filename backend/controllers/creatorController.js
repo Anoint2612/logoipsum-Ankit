@@ -443,19 +443,8 @@ const getInsightsData = async (req, res) => {
 // --- Notifications ---
 const getNotifications = async (req, res) => {
     try {
-        let notifications = await Notification.find({ recipient: req.user._id }).sort({ createdAt: -1 });
-        
-        // Seed if no actual notifications exist for demo
-        if (notifications.length === 0) {
-            await Notification.create([
-                { recipient: req.user._id, type: 'post', content: 'You successfully published a new video post.', createdAt: new Date() },
-                { recipient: req.user._id, type: 'subscription', content: 'Jane Doe joined your Premium tier.', createdAt: new Date(Date.now() - 3600000) },
-                { recipient: req.user._id, type: 'like', content: 'Your latest photo post got 50 new likes.', createdAt: new Date(Date.now() - 86400000) },
-                { recipient: req.user._id, type: 'payout', content: 'Your payout of $1500 has been processed.', createdAt: new Date(Date.now() - 172800000) }
-            ]);
-            notifications = await Notification.find({ recipient: req.user._id }).sort({ createdAt: -1 });
-        }
-        
+    const notifications = await Notification.find({ recipient: req.user._id }).sort({ createdAt: -1 });
+
         res.json(notifications);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -465,11 +454,32 @@ const getNotifications = async (req, res) => {
 const markNotificationRead = async (req, res) => {
     try {
         const { id } = req.params;
-        await Notification.findByIdAndUpdate(id, { isRead: true });
+    const updatedNotification = await Notification.findOneAndUpdate(
+      { _id: id, recipient: req.user._id },
+      { $set: { isRead: true } },
+      { new: true }
+    );
+
+    if (!updatedNotification) {
+      return res.status(404).json({ message: 'Notification not found' });
+    }
+
         res.json({ message: 'Marked as read' });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
+};
+
+const markAllCreatorNotificationsRead = async (req, res) => {
+  try {
+    await Notification.updateMany(
+      { recipient: req.user._id, isRead: false },
+      { $set: { isRead: true } }
+    );
+    res.json({ message: 'All marked as read' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 // --- Payouts ---
@@ -617,6 +627,7 @@ module.exports = {
   updateCreatorProfile,
   getNotifications,
   markNotificationRead,
+  markAllCreatorNotificationsRead,
   getPayoutSettings,
   updatePayoutSettings,
   createLivestream,

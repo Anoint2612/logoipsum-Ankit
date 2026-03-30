@@ -136,7 +136,7 @@ const NestedComment = ({
                   comment={child} 
                   allComments={allComments} 
                   postId={postId} 
-                  onCommentAdded={onCommentAdded} 
+                  onCommentAdded={(newComment) => onCommentAdded(newComment)} 
                 />
               ))}
             </div>
@@ -220,7 +220,7 @@ export default function CommentsSection({ postId }: CommentsSectionProps) {
             comment={comment}
             allComments={comments}
             postId={postId}
-            onCommentAdded={(newComment) => setComments([...comments, newComment])}
+            onCommentAdded={(newComment) => setComments(prev => [...prev, newComment])}
           />
         ))}
         {comments.length === 0 && (

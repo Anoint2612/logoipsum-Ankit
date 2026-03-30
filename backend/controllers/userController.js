@@ -7,6 +7,120 @@ const Review = require('../models/Review');
 const ReviewReply = require('../models/ReviewReply');
 const Notification = require('../models/Notification');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const streamifier = require('streamifier');
+const cloudinary = require('../utils/cloudinary');
+
+const profileUpload = multer({ storage: multer.memoryStorage() }).single('avatar');
+
+// @desc    Get notifications for logged-in user
+// @route   GET /api/user/notifications
+// @access  Private
+exports.getUserNotifications = async (req, res) => {
+  try {
+    const notifications = await Notification.find({ recipient: req.user._id }).sort({ createdAt: -1 });
+    res.json(notifications);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// @desc    Mark one user notification as read
+// @route   PUT /api/user/notifications/:id/read
+// @access  Private
+exports.markUserNotificationRead = async (req, res) => {
+  try {
+    const updatedNotification = await Notification.findOneAndUpdate(
+      { _id: req.params.id, recipient: req.user._id },
+      { $set: { isRead: true } },
+      { new: true }
+    );
+
+    if (!updatedNotification) {
+      return res.status(404).json({ message: 'Notification not found' });
+    }
+
+    res.json({ message: 'Marked as read' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// @desc    Mark all user notifications as read
+// @route   PUT /api/user/notifications/mark-all-read
+// @access  Private
+exports.markAllUserNotificationsRead = async (req, res) => {
+  try {
+    await Notification.updateMany(
+      { recipient: req.user._id, isRead: false },
+      { $set: { isRead: true } }
+    );
+    res.json({ message: 'All marked as read' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// @desc    Update logged-in user profile
+// @route   PUT /api/user/update-profile
+// @access  Private
+exports.updateUserProfile = async (req, res) => {
+  profileUpload(req, res, async (err) => {
+    if (err) {
+      return res.status(400).json({ message: err.message });
+    }
+
+    try {
+      const updates = {};
+
+      if (typeof req.body.name === 'string' && req.body.name.trim()) {
+        updates.name = req.body.name.trim();
+      }
+
+      if (typeof req.body.countryOfResidence === 'string' && req.body.countryOfResidence.trim()) {
+        updates.countryOfResidence = req.body.countryOfResidence.trim();
+      }
+
+      if (req.file) {
+        const uploadToCloudinary = () =>
+          new Promise((resolve, reject) => {
+            const stream = cloudinary.uploader.upload_stream(
+              { resource_type: 'auto', folder: 'logoipsum_avatars' },
+              (uploadError, result) => {
+                if (result) {
+                  resolve(result);
+                } else {
+                  reject(uploadError);
+                }
+              }
+            );
+
+            streamifier.createReadStream(req.file.buffer).pipe(stream);
+          });
+
+        const uploadResult = await uploadToCloudinary();
+        updates.avatar = uploadResult.secure_url;
+      }
+
+      let user;
+
+      if (Object.keys(updates).length === 0) {
+        user = await User.findById(req.user._id).select('_id name email role avatar countryOfResidence');
+      } else {
+        user = await User.findByIdAndUpdate(req.user._id, { $set: updates }, { new: true, runValidators: true })
+          .select('_id name email role avatar countryOfResidence');
+      }
+
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      res.json(user);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+};
 
 // @desc    Get all creators for discovery
 // @route   GET /api/user/creators
@@ -61,9 +175,32 @@ exports.toggleFollowCreator = async (req, res) => {
     const creator = await Creator.findById(req.params.creatorId);
     if (!creator) return res.status(404).json({ message: 'Creator not found' });
 
-    // Assuming we have a follows array in User model or a separate Follow model
-    // For now, let's just send success
-    res.json({ message: 'Successfully followed/unfollowed' });
+    const currentUserId = req.user._id.toString();
+    const isFollowing = creator.followers.some((followerId) => followerId.toString() === currentUserId);
+
+    if (isFollowing) {
+      creator.followers = creator.followers.filter((followerId) => followerId.toString() !== currentUserId);
+      await creator.save();
+      return res.json({ message: 'Successfully unfollowed', isFollowing: false });
+    }
+
+    creator.followers.push(req.user._id);
+    await creator.save();
+
+    try {
+      if (creator.userId && creator.userId !== currentUserId) {
+        await Notification.create({
+          recipient: creator.userId,
+          sender: req.user._id,
+          type: 'subscription',
+          content: `${req.user.name} started following you`
+        });
+      }
+    } catch (notiErr) {
+      console.error('Notification error:', notiErr);
+    }
+
+    return res.json({ message: 'Successfully followed', isFollowing: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -394,6 +531,7 @@ exports.addReviewReply = async (req, res) => {
     const populatedReply = await ReviewReply.findById(newReply._id).populate('user', 'name avatar');
     res.status(201).json(populatedReply);
   } catch (err) {
+    console.error("Error adding review reply:", err);
     res.status(500).json({ error: err.message });
   }
 };

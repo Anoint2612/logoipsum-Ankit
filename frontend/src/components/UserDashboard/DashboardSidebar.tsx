@@ -5,6 +5,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import SettingsModal from './SettingsModal';
+import { useAuthStore } from '@/src/store/useAuthStore';
+import { useNotifications } from '@/src/hooks/useNotifications';
 
 const NAV_ITEMS = [
   { label: 'Home', icon: '/assets/dashboard/icon-home.svg', href: '/user' },
@@ -17,6 +19,9 @@ const NAV_ITEMS = [
 export default function DashboardSidebar() {
   const pathname = usePathname();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const unreadCount = useAuthStore((state) => state.unreadCount);
+
+  useNotifications('user');
 
   return (
     <aside className="fixed left-0 top-0 h-screen w-[240px] bg-[#faf8f5] flex flex-col z-50 overflow-hidden shrink-0">
@@ -34,6 +39,8 @@ export default function DashboardSidebar() {
       <nav className="flex flex-col w-full flex-1 mt-4 gap-1">
         {NAV_ITEMS.map((item, index) => {
           const isActive = pathname === item.href;
+          const isNotificationsItem = item.label === 'Notifications';
+          const showBadge = isNotificationsItem && unreadCount > 0;
           return (
             <Link
               href={item.href}
@@ -44,6 +51,11 @@ export default function DashboardSidebar() {
             >
               <div className="relative size-[24px] shrink-0">
                 <Image src={item.icon} alt={item.label} fill className={isActive ? 'opacity-100' : 'opacity-80'} />
+                {showBadge && (
+                  <span className="absolute top-0 right-0 bg-[#f95c4b] text-white rounded-full text-[10px] min-w-[16px] h-[16px] flex items-center justify-center leading-none">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
               </div>
               <p className={`font-[family-name:var(--font-figtree)] font-medium leading-[25.8px] text-[16px] tracking-[0.32px] whitespace-nowrap ${isActive ? 'text-[#3a3a3a]' : 'text-[#5a5a5a]'}`}>
                 {item.label}

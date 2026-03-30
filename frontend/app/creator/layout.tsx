@@ -2,9 +2,10 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Bell, Library, MessageSquare, Megaphone, Receipt, PlusCircle, PenTool, Video, MoreVertical, FileText, X, ChevronDown, History, Search } from 'lucide-react';
+import { Home, Bell, Library, MessageSquare, Megaphone, Receipt, PlusCircle, PenTool, Video, MoreVertical, FileText, X, ChevronDown, History } from 'lucide-react';
 import React, { useState } from 'react';
 import { useAuthStore } from '@/src/store/useAuthStore';
+import { useNotifications } from '@/src/hooks/useNotifications';
 
 export default function CreatorLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -12,7 +13,10 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [publishModalOpen, setPublishModalOpen] = useState(false);
   const user = useAuthStore((state) => state.user);
+  const unreadCount = useAuthStore((state) => state.unreadCount);
   const logout = useAuthStore((state) => state.logout);
+
+  useNotifications('creator');
 
   const isActive = (path: string) => {
     return pathname === path 
@@ -37,7 +41,15 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
             <Home className="w-5 h-5 stroke-[1.5]" /> Home
           </Link>
           <Link href="/creator/notifications" className={isActive('/creator/notifications')}>
-            <Bell className="w-5 h-5 stroke-[1.5]" /> Notifications
+            <span className="relative inline-flex">
+              <Bell className="w-5 h-5 stroke-[1.5]" />
+              {unreadCount > 0 && (
+                <span className="absolute top-0 right-0 bg-[#f95c4b] text-white rounded-full text-[10px] min-w-[16px] h-[16px] flex items-center justify-center leading-none">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </span>
+            Notifications
           </Link>
           <Link href="/creator/library" className={isActive('/creator/library')}>
             <Library className="w-5 h-5 stroke-[1.5]" /> My library
@@ -175,7 +187,7 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
               </p>
               
               <p className="text-sm font-medium text-slate-500 mb-8 leading-relaxed tracking-tight">
-                We use this for purposes like tax and payout, and it's never shown publicly. <a href="#" className="text-rose-500 hover:underline">Learn More</a>
+                We use this for purposes like tax and payout, and it&apos;s never shown publicly. <a href="#" className="text-rose-500 hover:underline">Learn More</a>
               </p>
 
               <div className="grid grid-cols-2 gap-4 mb-6">

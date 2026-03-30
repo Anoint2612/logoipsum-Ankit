@@ -7,7 +7,11 @@ const userSchema = mongoose.Schema(
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     role: { type: String, enum: ['user', 'creator', 'admin'], default: 'user' },
+    avatar: { type: String, default: '' },
+    countryOfResidence: { type: String, default: 'All courses' },
     bio: { type: String, default: '' },
+    resetPasswordToken: { type: String, default: '' },
+    resetPasswordExpires: { type: Date },
     following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   },
   { timestamps: true }
@@ -16,7 +20,7 @@ const userSchema = mongoose.Schema(
 // Hash password before saving
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) {
-    next();
+    return next();
   }
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);

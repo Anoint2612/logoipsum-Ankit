@@ -15,6 +15,7 @@ const {
   getInsightsData,
   updateCreatorProfile,
   getNotifications,
+  markAllCreatorNotificationsRead,
   markNotificationRead,
   getPayoutSettings,
   updatePayoutSettings,
@@ -35,6 +36,7 @@ router.get('/insights', getInsightsData);
 
 // Notifications
 router.get('/notifications', getNotifications);
+router.put('/notifications/mark-all-read', markAllCreatorNotificationsRead);
 router.put('/notifications/:id/read', markNotificationRead);
 
 // Payouts

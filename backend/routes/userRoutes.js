@@ -10,6 +10,10 @@ const {
   getFollowingCreators,
   searchCreators,
   getLiveStreams,
+  updateUserProfile,
+  getUserNotifications,
+  markUserNotificationRead,
+  markAllUserNotificationsRead,
   reactToPost,
   getComments,
   addComment,
@@ -31,24 +35,28 @@ router.get('/creators/:id', getCreatorProfile);
 router.get('/creators/:id/posts', getCreatorPosts);
 router.get('/creators/:id/reviews', getCreatorReviews);
 router.get('/livestreams', getLiveStreams);
+router.get('/posts/:id', getPostDetails);
+router.get('/posts/:id/comments', getComments);
+router.get('/reviews/:id/replies', getReviewReplies);
 
 // Protected routes (for Fans/Users)
 router.use(protect);
+router.put('/update-profile', updateUserProfile);
+router.get('/notifications', getUserNotifications);
+router.put('/notifications/mark-all-read', markAllUserNotificationsRead);
+router.put('/notifications/:id/read', markUserNotificationRead);
 router.get('/messages', getMessages);
 router.post('/messages', sendMessage);
 router.get('/following', getFollowingCreators);
 router.post('/follow/:creatorId', toggleFollowCreator);
-router.get('/posts/:id', getPostDetails);
 
 // Additional post interactions
 router.post('/posts/:id/react', reactToPost);
-router.get('/posts/:id/comments', getComments);
 router.post('/posts/:id/comments', addComment);
 
 router.post('/creators/:id/reviews', addCreatorReview);
 
 // Review replies
-router.get('/reviews/:id/replies', getReviewReplies);
 router.post('/reviews/:id/replies', addReviewReply);
 
 module.exports = router;

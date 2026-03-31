@@ -569,7 +569,13 @@ exports.addReviewReply = async (req, res) => {
 exports.toggleFavoritePost = async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json({ message: 'Post not found' });
+    
     const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    
+    if (!user.favorites) user.favorites = [];
+    
     const isFavorited = user.favorites.some(favId => favId.toString() === post._id.toString());
     if (isFavorited) {
       user.favorites = user.favorites.filter(id => id.toString() !== post._id.toString());
@@ -590,7 +596,7 @@ exports.getFavoritePosts = async (req, res) => {
       path: 'favorites',
       populate: { path: 'creatorId' }
     });
-    res.json(user.favorites.filter(p => p !== null));
+    res.json((user.favorites || []).filter(p => p !== null));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -600,7 +606,14 @@ exports.getFavoritePosts = async (req, res) => {
 exports.toggleSubscription = async (req, res) => {
   try {
     const creator = await Creator.findById(req.params.creatorId);
+    if (!creator) return res.status(404).json({ message: 'Creator not found' });
+    
     const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    
+    if (!user.memberships) user.memberships = [];
+    if (!creator.subscribers) creator.subscribers = [];
+    
     const isMember = user.memberships.some(id => id.toString() === creator._id.toString());
     if (isMember) {
       user.memberships = user.memberships.filter(id => id.toString() !== creator._id.toString());

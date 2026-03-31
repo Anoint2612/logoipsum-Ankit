@@ -618,3 +618,15 @@ exports.toggleSubscription = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// @desc    Get replies to a review
+exports.getReviewReplies = async (req, res) => {
+  try {
+    const replies = await ReviewReply.find({ review: req.params.id })
+      .populate('user', 'name avatar')
+      .sort({ createdAt: 1 });
+    res.json(replies);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

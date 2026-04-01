@@ -3,6 +3,7 @@ import Image from 'next/image';
 import api from '@/src/lib/api';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '@/src/store/useAuthStore';
+import { useIsMounted } from '@/src/hooks/useIsMounted';
 
 interface ReviewReply {
   _id: string;
@@ -43,6 +44,7 @@ const NestedReply = ({
   onReplyAdded: () => void 
 }) => {
   const { token } = useAuthStore();
+  const isMounted = useIsMounted();
   const [showReplyInput, setShowReplyInput] = useState(false);
   const [replyText, setReplyText] = useState('');
   const [submittingReply, setSubmittingReply] = useState(false);
@@ -86,7 +88,7 @@ const NestedReply = ({
               {reply.user?.name || "Anonymous User"}
             </p>
             <p className="font-['Figtree',sans-serif] font-medium leading-[18.3px] text-[#9a9a9a] text-[12px]">
-              {getRelativeTime(reply.createdAt)}
+              {isMounted ? getRelativeTime(reply.createdAt) : ''}
             </p>
           </div>
           <p className="font-['Figtree',sans-serif] font-medium leading-[18.3px] text-[#5a5a5a] text-[13px] w-full">
@@ -155,6 +157,7 @@ interface ReviewCardProps {
 
 export default function ReviewCard({ reviewId, avatarSrc, name, reviewText, createdAt }: ReviewCardProps) {
   const { token } = useAuthStore();
+  const isMounted = useIsMounted();
   const [showReplies, setShowReplies] = useState(false);
   const [showReplyInput, setShowReplyInput] = useState(false);
   const [replies, setReplies] = useState<ReviewReply[]>([]);
@@ -247,7 +250,7 @@ export default function ReviewCard({ reviewId, avatarSrc, name, reviewText, crea
       <div className="flex gap-[15px] items-start">
         <div className="flex items-center justify-center">
           <p className="font-['Figtree',sans-serif] font-medium leading-[18.3px] text-[#9a9a9a] text-[13px] tracking-[0.26px]">
-            {getRelativeTime(createdAt)}
+            {isMounted ? getRelativeTime(createdAt) : ''}
           </p>
         </div>
         

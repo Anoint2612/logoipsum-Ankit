@@ -63,7 +63,7 @@ export default function CreatorAboutPage({ params }: { params: Promise<{ id: str
               </div>
 
               <div className="flex flex-col gap-[24px] items-start w-full mt-[24px]">
-                <ContentTabs defaultTab="about" creatorId={id as string} />
+                <ContentTabs defaultTab="about" creatorId={id as string} contentCounts={creator.contentCounts} />
                 <CreatorAbout creatorId={creator._id} />
               </div>
             </div>

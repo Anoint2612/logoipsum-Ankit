@@ -12,6 +12,7 @@ import type { Status as MessageStatusType } from '@/src/components/UserDashboard
 import { useConversationKey } from '@/src/hooks/useConversationKey';
 import { encryptMessage, decryptMessage } from '@/src/lib/encryption';
 import { useAuthStore } from '@/src/store/useAuthStore';
+import { useIsMounted } from '@/src/hooks/useIsMounted';
 import Picker from '@emoji-mart/react';
 import data from '@emoji-mart/data/sets/15/native.json';
 import Lightbox from 'yet-another-react-lightbox';
@@ -46,6 +47,7 @@ type ReplyingToState = {
 };
 
 export default function UserMessagesPage() {
+  const isMounted = useIsMounted();
   const [conversations, setConversations] = useState<any[]>([]);
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
   const [messages, setMessages] = useState<any[]>([]);
@@ -697,7 +699,9 @@ export default function UserMessagesPage() {
                    <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-center mb-0.5">
                          <h3 className="font-[family-name:var(--font-figtree)] text-[15px] font-semibold text-[#1a1a1a] truncate">{chat.participant?.name || 'Creator'}</h3>
-                         <span className="font-[family-name:var(--font-figtree)] text-[11px] text-[#aaa]">{new Date(chat.lastMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                         <span className="font-[family-name:var(--font-figtree)] text-[11px] text-[#aaa]">
+                           {isMounted ? new Date(chat.lastMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                         </span>
                       </div>
                      <p className="font-[family-name:var(--font-figtree)] text-[13px] text-[#5a5a5a] truncate">{getLastMessagePreview(chat.lastMessage)}</p>
                    </div>

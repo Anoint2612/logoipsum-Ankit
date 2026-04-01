@@ -175,9 +175,23 @@ exports.getCreatorProfile = async (req, res) => {
       }
     }
 
+    // Get content counts for tabs
+    const [postsCount, videosCount, livestreamsCount, reviewsCount] = await Promise.all([
+      Post.countDocuments({ creatorId: creator._id, status: 'published' }),
+      Post.countDocuments({ creatorId: creator._id, status: 'published', mediaType: 'video' }),
+      Post.countDocuments({ creatorId: creator._id, status: 'published', mediaType: 'livestream' }),
+      Review.countDocuments({ creator: creator._id })
+    ]);
+
     res.json({
       ...creator.toObject(),
-      isSubscribed
+      isSubscribed,
+      contentCounts: {
+        posts: postsCount,
+        videos: videosCount,
+        livestreams: livestreamsCount,
+        reviews: reviewsCount
+      }
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

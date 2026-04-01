@@ -6,6 +6,7 @@ import ReviewCard from './ReviewCard';
 import api from '@/src/lib/api';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '@/src/store/useAuthStore';
+import { useIsMounted } from '@/src/hooks/useIsMounted';
 
 interface Review {
   _id: string;
@@ -20,6 +21,7 @@ interface Review {
 
 export default function CreatorReviews({ creatorId }: { creatorId?: string }) {
   const { token } = useAuthStore();
+  const isMounted = useIsMounted();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -78,7 +80,7 @@ export default function CreatorReviews({ creatorId }: { creatorId?: string }) {
       
       <div className="flex items-center justify-center">
         <h2 className="font-['Figtree',sans-serif] font-semibold leading-[29.2px] text-[#1a1a1a] text-[19px] tracking-[0.38px]">
-          Reviews ( {(Number(totalCount) || 0).toLocaleString()} )
+          Reviews ( {isMounted ? (Number(totalCount) || 0).toLocaleString() : '...'} )
         </h2>
       </div>
 

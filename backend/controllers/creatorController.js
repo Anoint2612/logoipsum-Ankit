@@ -467,7 +467,7 @@ const getSubscribers = async (req, res) => {
 
 const getInsightsData = async (req, res) => {
   try {
-    let creator = await Creator.findOne({ userId: req.user._id.toString() });
+    let creator = await Creator.findOne({ userId: req.user._id.toString() }).populate('subscribers', 'name email avatar createdAt');
     if (!creator) return res.status(404).json({ error: 'Creator not found' });
 
     const posts = await Post.find({ creatorId: creator._id });

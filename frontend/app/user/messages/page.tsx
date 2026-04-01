@@ -12,13 +12,18 @@ import type { Status as MessageStatusType } from '@/src/components/UserDashboard
 import { useConversationKey } from '@/src/hooks/useConversationKey';
 import { encryptMessage, decryptMessage } from '@/src/lib/encryption';
 import { useAuthStore } from '@/src/store/useAuthStore';
-import Picker from '@emoji-mart/react';
-import data from '@emoji-mart/data/sets/15/native.json';
+import { useIsMounted } from '@/src/hooks/useIsMounted';
 import Lightbox from 'yet-another-react-lightbox';
 import Video from 'yet-another-react-lightbox/plugins/video';
 import 'yet-another-react-lightbox/styles.css';
 
 const DEFAULT_AVATAR = '/assets/dashboard/avatar1.png';
+const EMOJI_PICKER_OPTIONS = [
+  '😀', '😁', '😂', '🤣', '😊', '😍', '😘', '😎',
+  '🤔', '😴', '🥳', '😇', '😭', '😡', '👍', '👎',
+  '👏', '🙌', '🙏', '💪', '🔥', '✨', '🎉', '❤️',
+  '💛', '💚', '💙', '💜', '🤍', '🖤', '💯', '✅'
+];
 
 const getAvatarUrl = (profile: any) => profile?.avatar || DEFAULT_AVATAR;
 
@@ -48,6 +53,7 @@ type ReplyingToState = {
 };
 
 export default function UserMessagesPage() {
+  const isMounted = useIsMounted();
   const [conversations, setConversations] = useState<any[]>([]);
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
   const [messages, setMessages] = useState<any[]>([]);
@@ -703,7 +709,9 @@ export default function UserMessagesPage() {
                    <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-center mb-0.5">
                          <h3 className="font-[family-name:var(--font-figtree)] text-[15px] font-semibold text-[#1a1a1a] truncate">{chat.participant?.name || 'Creator'}</h3>
-                         <span className="font-[family-name:var(--font-figtree)] text-[11px] text-[#aaa]">{new Date(chat.lastMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                         <span className="font-[family-name:var(--font-figtree)] text-[11px] text-[#aaa]">
+                           {isMounted ? new Date(chat.lastMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                         </span>
                       </div>
                      <p className="font-[family-name:var(--font-figtree)] text-[13px] text-[#5a5a5a] truncate">{getLastMessagePreview(chat.lastMessage)}</p>
                    </div>
@@ -875,33 +883,23 @@ export default function UserMessagesPage() {
                        className="absolute bottom-[72px] left-4 z-50 rounded-2xl overflow-hidden shadow-xl border border-[#e4ded2]"
                        style={{ width: '352px' }}
                      >
-                       <Picker
-                         data={data}
-                         onEmojiSelect={(emoji: any) => {
-                           insertEmoji(emoji.native);
-                           setShowEmojiPicker(false);
-                         }}
-                         theme="light"
-                         set="native"
-                         skinTonePosition="search"
-                         previewPosition="none"
-                         maxFrequentRows={1}
-                         perLine={8}
-                         emojiSize={28}
-                         emojiButtonSize={36}
-                         locale="en"
-                         categories={[
-                           'frequent',
-                           'people',
-                           'nature',
-                           'foods',
-                           'activity',
-                           'places',
-                           'objects',
-                           'symbols',
-                           'flags'
-                         ]}
-                       />
+                       <div className="bg-white p-3">
+                         <div className="grid grid-cols-8 gap-1">
+                           {EMOJI_PICKER_OPTIONS.map((emoji) => (
+                             <button
+                               key={emoji}
+                               type="button"
+                               onClick={() => {
+                                 insertEmoji(emoji);
+                                 setShowEmojiPicker(false);
+                               }}
+                               className="h-9 w-9 rounded-lg text-[22px] leading-none hover:bg-[#f6f4f1]"
+                             >
+                               {emoji}
+                             </button>
+                           ))}
+                         </div>
+                       </div>
                      </div>
                    )}
                    {mediaPreview && (

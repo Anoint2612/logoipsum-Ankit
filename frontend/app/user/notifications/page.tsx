@@ -6,6 +6,7 @@ import api from '@/src/lib/api';
 import { Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '@/src/store/useAuthStore';
+import { useIsMounted } from '@/src/hooks/useIsMounted';
 
 interface AppNotification {
   _id: string;
@@ -24,12 +25,14 @@ const getErrorMessage = (error: unknown, fallback: string) => {
   return fallback;
 };
 
-const formatDateTime = (dateInput: string) => {
+const formatDateTime = (dateInput: string, isMounted: boolean) => {
+  if (!isMounted) return '';
   const date = new Date(dateInput);
   return `${date.toLocaleDateString()} | ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
 };
 
 export default function NotificationsPage() {
+  const isMounted = useIsMounted();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [loading, setLoading] = useState(true);
   const [markingAll, setMarkingAll] = useState(false);
@@ -64,8 +67,11 @@ export default function NotificationsPage() {
       active = false;
     };
   }, [clearUnread]);
-
   const { todayNotifications, yesterdayNotifications, earlierNotifications } = useMemo(() => {
+    if (!isMounted) {
+      return { todayNotifications: [], yesterdayNotifications: [], earlierNotifications: [] };
+    }
+
     const today = new Date();
     const todayKey = today.toLocaleDateString();
 
@@ -91,7 +97,7 @@ export default function NotificationsPage() {
     });
 
     return grouped;
-  }, [notifications]);
+  }, [notifications, isMounted]);
 
   const markAsRead = async (notification: AppNotification) => {
     if (notification.isRead) {
@@ -154,7 +160,7 @@ export default function NotificationsPage() {
                       {notification.content}
                     </p>
                     <p className="font-[family-name:var(--font-figtree)] font-medium text-[13px] leading-[18.3px] tracking-[0.26px] text-[#5a5a5a]">
-                      {formatDateTime(notification.createdAt)}
+                      {formatDateTime(notification.createdAt, isMounted)}
                     </p>
                   </div>
                 </div>

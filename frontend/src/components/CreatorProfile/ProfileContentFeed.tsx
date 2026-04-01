@@ -9,6 +9,7 @@ import { Loader2, MessageCircle, Pencil, Send, ThumbsDown, ThumbsUp, Trash2, X }
 import api from '@/src/lib/api';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '@/src/store/useAuthStore';
+import { useIsMounted } from '@/src/hooks/useIsMounted';
 
 type ReactionType = 'like' | 'dislike' | null;
 
@@ -107,6 +108,7 @@ interface ProfileContentFeedProps {
 export default function ProfileContentFeed({ creatorId }: ProfileContentFeedProps) {
   const user = useAuthStore((state) => state.user);
   const token = useAuthStore((state) => state.token);
+  const isMounted = useIsMounted();
 
   const searchParams = useSearchParams();
   const currentTab = searchParams?.get('tab') || 'posts';
@@ -375,7 +377,7 @@ export default function ProfileContentFeed({ creatorId }: ProfileContentFeedProp
                 {comment.user?.name || 'User'}
               </p>
               <span className="font-[family-name:var(--font-figtree)] text-[12px] text-[#9a9a9a]">
-                {getRelativeTime(comment.createdAt)}
+                {isMounted ? getRelativeTime(comment.createdAt) : ''}
               </span>
             </div>
 
@@ -495,7 +497,7 @@ export default function ProfileContentFeed({ creatorId }: ProfileContentFeedProp
                 <div className="flex gap-[10px] items-center text-[#9a9a9a] flex-wrap">
                   <div className="flex items-center">
                     <p className="font-['Figtree',sans-serif] font-medium leading-[18.3px] text-[13px] tracking-[0.26px] whitespace-nowrap">
-                      {new Date(post.createdAt).toLocaleDateString()}
+                      {isMounted ? new Date(post.createdAt).toLocaleDateString() : ''}
                     </p>
                   </div>
 

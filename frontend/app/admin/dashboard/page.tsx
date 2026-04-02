@@ -1,262 +1,449 @@
 "use client"
 
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell } from 'recharts';
+import { Flag, FileCheck, AlertTriangle } from 'lucide-react';
+
+/* ───────────────────── STATIC DATA ───────────────────── */
+
+const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May'];
+
+const statCards = [
+  {
+    label: 'Total Users',
+    value: '24,580',
+    badge: '+5%',
+    badgeType: 'green' as const,
+    chartData: MONTHS_SHORT.map((m, i) => ({ name: m, val: [45, 60, 85, 50, 30][i] })),
+    barColor: '#F97316',
+    title: 'Total Users Growth',
+    desc: 'How many user using the website',
+  },
+  {
+    label: 'Active Creators',
+    value: '3,120',
+    badge: '+5%',
+    badgeType: 'green' as const,
+    chartData: MONTHS_SHORT.map((m, i) => ({ name: m, val: [65, 40, 85, 70, 30][i] })),
+    barColor: '#1F2937',
+    title: 'Active Creators',
+    desc: 'How many Creators using the website',
+  },
+  {
+    label: 'Monthly Revenue',
+    value: '₹12,40,000',
+    badge: '+5%',
+    badgeType: 'green' as const,
+    chartData: MONTHS_SHORT.map((m, i) => ({ name: m, val: [60, 65, 80, 30, 20][i] })),
+    barColor: '#1F2937',
+    title: 'Total Monthly Revenue',
+    desc: 'Give you the number of revenue you get',
+  },
+  {
+    label: 'Pending Payouts',
+    value: '8,450',
+    badge: '+5%',
+    badgeType: 'red' as const,
+    chartData: MONTHS_SHORT.map((m, i) => ({ name: m, val: [30, 45, 60, 50, 85][i] })),
+    barColor: '#F97316',
+    title: 'Pending Payouts',
+    desc: 'Show case the pending payouts',
+  },
+];
+
+const MONTHS_FULL = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+const revenueMonthly = MONTHS_FULL.map((m, i) => ({
+  name: m,
+  val: [30, 45, 55, 35, 40, 70, 60, 90, 85, 95, 60, 75][i],
+}));
+
+const revenueWeekly = ['Wk1', 'Wk2', 'Wk3', 'Wk4'].map((w, i) => ({
+  name: w,
+  val: [55, 72, 90, 65][i],
+}));
+
+const revenueBarGradient = (index: number, total: number) => {
+  const ratio = index / (total - 1);
+  const r = Math.round(209 + (31 - 209) * ratio);
+  const g = Math.round(213 + (41 - 213) * ratio);
+  const b = Math.round(219 + (55 - 219) * ratio);
+  return `rgb(${r},${g},${b})`;
+};
+
+const topCreators = [
+  { initials: 'AM', name: 'Alex Rivera', role: 'Digital Artist', earnings: '₹84k', rank: 1, color: '#6366F1' },
+  { initials: 'SK', name: 'Sarah K.', role: 'Podcaster', earnings: '₹62k', rank: 2, color: '#F97316' },
+  { initials: 'JD', name: 'Jay Dev', role: 'Edu-Tech', earnings: '₹59k', rank: 3, color: '#1F2937' },
+];
+
+const activities = [
+  { dot: '#DC2626', text: '₹100k in lifetime earnings', time: '2 min ago' },
+  { dot: '#EAB308', text: 'Server load at 85%', time: '14 min ago' },
+  { dot: '#1F2937', text: 'New creator application', time: '1 hour ago' },
+];
+
+/* ───────────────────── COMPONENT ───────────────────── */
 
 export default function Dashboard() {
-  const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [revenuePeriod, setRevenuePeriod] = useState<'monthly' | 'weekly'>('monthly');
+  const [alertVisible, setAlertVisible] = useState(true);
+  const [alertFading, setAlertFading] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const fetchDashboard = async () => {
-      try {
-        const res = await axios.get('http://localhost:5001/api/admin/data');
-        if (res.data && res.data.dashboard) setData(res.data.dashboard);
-      } catch (err) {
-        console.error("Error fetching dashboard:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchDashboard();
+    const t = setTimeout(() => setMounted(true), 50);
+    return () => clearTimeout(t);
   }, []);
 
-  if (loading || !data) {
-    return <div className="p-8 text-slate-500">Loading dynamic dashboard...</div>;
-  }
+  const dismissAlert = () => {
+    setAlertFading(true);
+    setTimeout(() => setAlertVisible(false), 400);
+  };
+
+  const revenueData = revenuePeriod === 'monthly' ? revenueMonthly : revenueWeekly;
 
   return (
-    <div className="p-8 max-w-[1400px] mx-auto space-y-6 w-full bg-[#f8f9fa] min-h-[calc(100vh-64px)] font-sans">
-      
-      {/* Header Titles */}
-      <div>
-        <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Dashboard</h2>
-        <p className="text-sm font-medium text-slate-500 mt-1">Manage platform users, creators, and administrators.</p>
-      </div>
+    <>
+      {/* Google Font */}
+      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+      <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
-      {/* Top 4 Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        
-        {/* Card 1 */}
-        <div className="bg-white border rounded-xl p-5 shadow-sm border-slate-100 flex flex-col h-full">
-          <p className="text-sm font-bold text-slate-600 mb-1">Total Users</p>
-          <div className="flex items-center gap-3">
-            <h3 className="text-3xl font-bold text-slate-800">{data.users.count}</h3>
-            <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded-full">{data.users.growth}</span>
-          </div>
-          <div className="h-32 mt-4 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data.users.data} barSize={20} margin={{ top: 0, right: 0, left: -25, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="name" tick={{fontSize: 9, fill: '#64748b'}} tickLine={false} axisLine={false} />
-                <YAxis tick={{fontSize: 9, fill: '#64748b'}} tickLine={false} axisLine={false} tickFormatter={v => `${v}%`} ticks={[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]} />
-                <Bar dataKey="val" fill="#1e293b" radius={[2, 2, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="mt-4 border-t border-slate-100 pt-3">
-             <h4 className="text-xs font-bold text-slate-800 mb-1">Total Users Growth</h4>
-             <p className="text-[11px] text-slate-500 leading-tight">How many user using the<br/>website</p>
-          </div>
+      <style>{`
+        .dashboard-root { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .dash-card { transition: box-shadow 0.2s ease, transform 0.2s ease; }
+        .dash-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.10); transform: translateY(-2px); }
+        .activity-row { transition: background 0.15s ease; }
+        .activity-row:hover { background: #F9FAFB; }
+        @keyframes dashFadeUp {
+          from { opacity: 0; transform: translateY(12px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .dash-animate { opacity: 0; }
+        .dash-animate.visible {
+          animation: dashFadeUp 0.4s ease forwards;
+        }
+      `}</style>
+
+      <div className="dashboard-root p-6 w-full min-h-[calc(100vh-64px)] bg-[#F5F5F8] overflow-y-auto">
+
+        {/* ── PAGE HEADER ── */}
+        <div className={`dash-animate mb-6 ${mounted ? 'visible' : ''}`} style={{ animationDelay: '0s' }}>
+          <h1 style={{ fontSize: 28, fontWeight: 700, color: '#111827', lineHeight: 1.2 }}>Dashboard</h1>
+          <p style={{ fontSize: 14, color: '#6B7280', marginTop: 4 }}>Manage platform users, creators, and administrators.</p>
         </div>
 
-        {/* Card 2 */}
-        <div className="bg-white border rounded-xl p-5 shadow-sm border-slate-100 flex flex-col h-full">
-          <p className="text-sm font-bold text-slate-600 mb-1">Total Creators</p>
-          <div className="flex items-center gap-3">
-            <h3 className="text-3xl font-bold text-slate-800">{data.creators.count}</h3>
-            <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded-full">{data.creators.growth}</span>
-          </div>
-          <div className="h-32 mt-4 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data.creators.data} barSize={20} margin={{ top: 0, right: 0, left: -25, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="name" tick={{fontSize: 9, fill: '#64748b'}} tickLine={false} axisLine={false} />
-                <YAxis tick={{fontSize: 9, fill: '#64748b'}} tickLine={false} axisLine={false} tickFormatter={v => `${v}%`} ticks={[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]} />
-                <Bar dataKey="val" fill="#64748b" radius={[2, 2, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="mt-4 border-t border-slate-100 pt-3">
-             <h4 className="text-xs font-bold text-slate-800 mb-1">Total Creators Growth</h4>
-             <p className="text-[11px] text-slate-500 leading-tight">How many Creators using<br/>the website</p>
-          </div>
-        </div>
-
-        {/* Card 3 */}
-        <div className="bg-white border rounded-xl p-5 shadow-sm border-slate-100 flex flex-col h-full">
-          <p className="text-sm font-bold text-slate-600 mb-1">Monthly Revenue</p>
-          <div className="flex items-center gap-3">
-            <h3 className="text-3xl font-bold text-slate-800">{data.revenue.count}</h3>
-            <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded-full">{data.revenue.growth}</span>
-          </div>
-          <div className="h-32 mt-4 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data.revenue.data} barSize={20} margin={{ top: 0, right: 0, left: -25, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="name" tick={{fontSize: 9, fill: '#64748b'}} tickLine={false} axisLine={false} />
-                <YAxis tick={{fontSize: 9, fill: '#64748b'}} tickLine={false} axisLine={false} tickFormatter={v => `${v}%`} ticks={[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]} />
-                <Bar dataKey="val" fill="#334155" radius={[2, 2, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="mt-4 border-t border-slate-100 pt-3">
-             <h4 className="text-xs font-bold text-slate-800 mb-1">Total Monthly Revenue</h4>
-             <p className="text-[11px] text-slate-500 leading-tight">Give you the number of<br/>revenue you get</p>
-          </div>
-        </div>
-
-        {/* Card 4 */}
-        <div className="bg-white border rounded-xl p-5 shadow-sm border-slate-100 flex flex-col h-full">
-          <p className="text-sm font-bold text-slate-600 mb-1">Active Subscriptions</p>
-          <div className="flex items-center gap-3">
-            <h3 className="text-3xl font-bold text-slate-800">{data.subscriptions.count}</h3>
-            <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5 rounded-full">{data.subscriptions.growth}</span>
-          </div>
-          <div className="h-32 mt-4 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data.subscriptions.data} barSize={20} margin={{ top: 0, right: 0, left: -25, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="name" tick={{fontSize: 9, fill: '#64748b'}} tickLine={false} axisLine={false} />
-                <YAxis tick={{fontSize: 9, fill: '#64748b'}} tickLine={false} axisLine={false} tickFormatter={v => `${v}%`} ticks={[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]} />
-                <Bar dataKey="val" fill="#ea580c" radius={[2, 2, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="mt-4 border-t border-slate-100 pt-3">
-             <h4 className="text-xs font-bold text-slate-800 mb-1">Total Active Subscriptions</h4>
-             <p className="text-[11px] text-slate-500 leading-tight">Give us the no of<br/>Subscriptions in website</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Middle 2 Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        {/* Revenue Over Time */}
-        <div className="bg-white border border-slate-100 rounded-xl p-6 shadow-sm">
-          <div className="flex items-center gap-3 mb-1">
-            <h3 className="text-sm font-bold text-slate-800">Revenue Over Time</h3>
-            <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Profit</span>
-          </div>
-          <p className="text-xs text-slate-500 mb-6 font-medium">Showcase the Revenue you got from the website over a period...</p>
-          
-          <div className="h-56 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-               <BarChart data={data.revenueOverTime} barSize={28} margin={{ top: 0, right: 0, left: -25, bottom: 0 }}>
-                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                 <XAxis dataKey="name" tick={{fontSize: 10, fill: '#64748b'}} tickLine={false} axisLine={false} />
-                 <YAxis tick={{fontSize: 10, fill: '#64748b'}} tickLine={false} axisLine={false} tickFormatter={v => `${v}%`} ticks={[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]} />
-                 <Tooltip cursor={{fill: '#f1f5f9'}} />
-                 <Bar dataKey="val" radius={[2, 2, 0, 0]}>
-                   {data.revenueOverTime.map((entry: any, index: number) => {
-                     const colors = ['#e2e8f0','#cbd5e1','#cbd5e1','#f1f5f9','#f1f5f9','#e2e8f0','#e2e8f0','#f1f5f9','#1e293b','#0f172a','#1e293b'];
-                     return <Cell key={`cell-${index}`} fill={colors[index] || '#111827'} />;
-                   })}
-                 </Bar>
-               </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* User Growth */}
-        <div className="bg-white border border-slate-100 rounded-xl p-6 shadow-sm">
-          <div className="flex items-center gap-3 mb-1">
-            <h3 className="text-sm font-bold text-slate-800">User Growth</h3>
-            <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Growth</span>
-          </div>
-          <p className="text-xs text-slate-500 mb-6 font-medium">Showcase the growth of the users in the website</p>
-          
-          <div className="h-56 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-               <LineChart data={data.userGrowth} margin={{ top: 0, right: 0, left: -25, bottom: 0 }}>
-                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                 <XAxis dataKey="name" tick={{fontSize: 10, fill: '#64748b'}} tickLine={false} axisLine={false} />
-                 <YAxis tick={{fontSize: 10, fill: '#64748b'}} tickLine={false} axisLine={false} tickFormatter={v => `${v}%`} ticks={[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]} />
-                 <Tooltip />
-                 <Line type="linear" dataKey="val" stroke="#334155" strokeWidth={2} dot={{r: 4, fill: '#334155'}} activeDot={{ r: 6 }} />
-               </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-      </div>
-
-      {/* Bottom 2 Cards Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        {/* Recent Alerts */}
-        <div className="bg-white border border-slate-100 rounded-xl p-6 shadow-sm h-full flex flex-col">
-          <h3 className="text-sm font-bold text-slate-800 mb-6">Recent Alerts</h3>
-          <div className="space-y-6 flex-1">
-            <div className="flex items-center justify-between">
+        {/* ── TOP STATS ROW ── */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-4">
+          {statCards.map((card, idx) => (
+            <div
+              key={card.label}
+              className={`dash-card dash-animate bg-white rounded-xl p-5 ${mounted ? 'visible' : ''}`}
+              style={{
+                boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+                animationDelay: `${0.05 * (idx + 1)}s`,
+              }}
+            >
+              <p style={{ fontSize: 14, fontWeight: 500, color: '#6B7280', marginBottom: 4 }}>{card.label}</p>
               <div className="flex items-center gap-3">
-                <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                <p className="text-sm font-bold text-slate-700">5 reports pending review</p>
+                <span style={{ fontSize: 30, fontWeight: 700, color: '#111827', lineHeight: 1.1 }}>{card.value}</span>
+                <span
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    padding: '2px 10px',
+                    borderRadius: 999,
+                    background: card.badgeType === 'green' ? '#DCFCE7' : '#FEE2E2',
+                    color: card.badgeType === 'green' ? '#16A34A' : '#DC2626',
+                  }}
+                >
+                  {card.badge}
+                </span>
               </div>
-              <span className="text-[10px] text-slate-400 font-medium">2 min ago</span>
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
-                <p className="text-sm font-bold text-slate-700">Server load at 85%</p>
-              </div>
-              <span className="text-[10px] text-slate-400 font-medium">14 min ago</span>
-            </div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 rounded-full bg-slate-800"></div>
-                <p className="text-sm font-bold text-slate-700">New creator application</p>
+              {/* Mini bar chart */}
+              <div style={{ height: 110, marginTop: 12 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={card.chartData} barSize={22} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                    <XAxis
+                      dataKey="name"
+                      tick={{ fontSize: 10, fill: '#9CA3AF' }}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <YAxis
+                      tick={{ fontSize: 10, fill: '#9CA3AF' }}
+                      tickLine={false}
+                      axisLine={false}
+                      tickFormatter={(v: number) => `${v}%`}
+                      ticks={[0, 20, 40, 60, 80, 100]}
+                      domain={[0, 100]}
+                    />
+                    <Bar dataKey="val" fill={card.barColor} radius={[3, 3, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
-              <span className="text-[10px] text-slate-400 font-medium">1 hour ago</span>
+
+              <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: 12, marginTop: 8 }}>
+                <h4 style={{ fontSize: 13, fontWeight: 700, color: '#111827', marginBottom: 2 }}>{card.title}</h4>
+                <p style={{ fontSize: 11, color: '#6B7280', lineHeight: 1.4 }}>{card.desc}</p>
+              </div>
             </div>
-          </div>
-          <button className="w-full mt-6 py-3 bg-[#f8f9fa] border border-slate-100 hover:bg-slate-100 text-xs font-bold text-slate-600 rounded-lg uppercase tracking-wider transition-colors">
-            View All Alerts
-          </button>
+          ))}
         </div>
 
-        {/* Support & Moderation */}
-        <div className="bg-white border border-slate-100 rounded-xl p-6 shadow-sm h-full flex flex-col">
-          <h3 className="text-sm font-bold text-slate-800 mb-6">Support & Moderation</h3>
-          
-          <div className="mb-6">
-             <div className="flex justify-between text-xs font-medium text-slate-700 mb-2">
-               <span>Moderation Queue</span>
-               <span>12 Items</span>
-             </div>
-             <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
-               <div className="bg-slate-800 h-full" style={{ width: '60%' }}></div>
-             </div>
+        {/* ── SECOND ROW: Revenue + Top Creators ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-4">
+
+          {/* Revenue Distribution (3/5 width) */}
+          <div
+            className={`dash-card dash-animate bg-white rounded-xl p-5 lg:col-span-3 ${mounted ? 'visible' : ''}`}
+            style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)', animationDelay: '0.3s' }}
+          >
+            <div className="flex items-center justify-between flex-wrap gap-3 mb-1">
+              <div className="flex items-center gap-3">
+                <h3 style={{ fontSize: 16, fontWeight: 600, color: '#111827' }}>Revenue Distribution</h3>
+                <span style={{ fontSize: 11, fontWeight: 600, background: '#DCFCE7', color: '#16A34A', padding: '2px 10px', borderRadius: 999 }}>
+                  Profit
+                </span>
+              </div>
+              <div className="flex rounded-lg overflow-hidden border border-[#E5E7EB]">
+                <button
+                  onClick={() => setRevenuePeriod('monthly')}
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    padding: '5px 14px',
+                    background: revenuePeriod === 'monthly' ? '#1F2937' : 'white',
+                    color: revenuePeriod === 'monthly' ? 'white' : '#6B7280',
+                    border: 'none',
+                    cursor: 'pointer',
+                    letterSpacing: '0.05em',
+                    textTransform: 'uppercase' as const,
+                  }}
+                >
+                  Monthly
+                </button>
+                <button
+                  onClick={() => setRevenuePeriod('weekly')}
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    padding: '5px 14px',
+                    background: revenuePeriod === 'weekly' ? '#1F2937' : 'white',
+                    color: revenuePeriod === 'weekly' ? 'white' : '#6B7280',
+                    border: 'none',
+                    borderLeft: '1px solid #E5E7EB',
+                    cursor: 'pointer',
+                    letterSpacing: '0.05em',
+                    textTransform: 'uppercase' as const,
+                  }}
+                >
+                  Weekly
+                </button>
+              </div>
+            </div>
+            <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 16 }}>Performance across last 6 months</p>
+
+            <div style={{ height: 240 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={revenueData} barSize={revenuePeriod === 'monthly' ? 24 : 40} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#9CA3AF' }} tickLine={false} axisLine={false} />
+                  <YAxis
+                    tick={{ fontSize: 10, fill: '#9CA3AF' }}
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={(v: number) => `${v}%`}
+                    ticks={[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]}
+                    domain={[0, 100]}
+                  />
+                  <Bar dataKey="val" radius={[3, 3, 0, 0]}>
+                    {revenueData.map((_: any, index: number) => {
+                      // Oct (index 9) is highlighted black; others gradient light→dark
+                      const isHighlight = revenuePeriod === 'monthly' && index === 9;
+                      return (
+                        <Cell
+                          key={`rev-${index}`}
+                          fill={isHighlight ? '#111827' : revenueBarGradient(index, revenueData.length)}
+                        />
+                      );
+                    })}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
 
-          <p className="text-xs font-medium text-slate-700 mb-3">Support Tickets Status</p>
-          <div className="flex gap-4 mb-6">
-            <div className="flex-1 bg-[#f8f9fa] border border-slate-100 rounded-xl p-4">
-              <p className="text-xs font-medium text-slate-500 mb-1">Open</p>
-              <h4 className="text-lg font-bold text-slate-800">12</h4>
+          {/* Top Creators (2/5 width) */}
+          <div
+            className={`dash-card dash-animate bg-white rounded-xl p-5 lg:col-span-2 flex flex-col ${mounted ? 'visible' : ''}`}
+            style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)', animationDelay: '0.35s' }}
+          >
+            <h3 style={{ fontSize: 16, fontWeight: 600, color: '#111827', marginBottom: 20 }}>Top Creators</h3>
+
+            <div className="flex-1 space-y-0">
+              {topCreators.map((c, i) => (
+                <div
+                  key={c.initials}
+                  className="flex items-center justify-between py-4"
+                  style={{ borderBottom: i < topCreators.length - 1 ? '1px solid #F3F4F6' : 'none' }}
+                >
+                  <div className="flex items-center gap-3">
+                    {/* Avatar */}
+                    <div
+                      style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: '50%',
+                        background: c.color,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'white',
+                        fontSize: 13,
+                        fontWeight: 700,
+                        flexShrink: 0,
+                      }}
+                    >
+                      {c.initials}
+                    </div>
+                    <div>
+                      <p style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{c.name}</p>
+                      <p style={{ fontSize: 12, color: '#9CA3AF' }}>{c.role}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>{c.earnings}</p>
+                    <p style={{ fontSize: 12, fontWeight: 600, color: c.rank === 1 ? '#16A34A' : '#9CA3AF' }}>
+                      Rank #{c.rank}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
-            <div className="flex-1 bg-[#f8f9fa] border border-slate-100 rounded-xl p-4">
-               <p className="text-xs font-medium text-slate-500 mb-1">In Progress</p>
-               <h4 className="text-lg font-bold text-slate-800">05</h4>
+
+            <button
+              onClick={() => console.log('View All Ranking clicked')}
+              className="w-full mt-4 py-3 border border-[#E5E7EB] rounded-lg text-center cursor-pointer hover:bg-[#F9FAFB] transition-colors"
+              style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', background: 'white', letterSpacing: '0.08em', textTransform: 'uppercase' as const }}
+            >
+              View All Ranking
+            </button>
+          </div>
+        </div>
+
+        {/* ── THIRD ROW: Activity + Stats + Alert ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+
+          {/* Recent Activity (3/5 width) */}
+          <div
+            className={`dash-card dash-animate bg-white rounded-xl p-5 lg:col-span-3 flex flex-col ${mounted ? 'visible' : ''}`}
+            style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)', animationDelay: '0.4s' }}
+          >
+            <h3 style={{ fontSize: 16, fontWeight: 600, color: '#111827', marginBottom: 16 }}>Recent Activity</h3>
+
+            <div className="flex-1 space-y-0">
+              {activities.map((a, i) => (
+                <div
+                  key={i}
+                  className="activity-row flex items-center justify-between py-4 px-2 rounded-lg cursor-default"
+                  style={{ borderBottom: i < activities.length - 1 ? '1px solid #F3F4F6' : 'none' }}
+                >
+                  <div className="flex items-center gap-3">
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: a.dot, flexShrink: 0 }} />
+                    <p style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{a.text}</p>
+                  </div>
+                  <span style={{ fontSize: 12, color: '#9CA3AF', flexShrink: 0, whiteSpace: 'nowrap' }}>{a.time}</span>
+                </div>
+              ))}
             </div>
+
+            <button
+              onClick={() => console.log('View All Alerts clicked')}
+              className="w-full mt-4 py-3 border border-[#E5E7EB] rounded-lg text-center cursor-pointer hover:bg-[#F9FAFB] transition-colors"
+              style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', background: 'white', letterSpacing: '0.08em', textTransform: 'uppercase' as const }}
+            >
+              View All Alerts
+            </button>
           </div>
 
-          <div className="flex gap-4 mt-auto">
-             <button className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm">
-               Review Queue
-             </button>
-             <button className="flex-1 py-3 bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 text-xs font-semibold rounded-lg transition-colors shadow-sm">
-               Support Desk
-             </button>
+          {/* Right column: 2 mini stat cards + System alert */}
+          <div className={`lg:col-span-2 flex flex-col gap-4 dash-animate ${mounted ? 'visible' : ''}`} style={{ animationDelay: '0.45s' }}>
+
+            {/* Two mini cards row */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Flagged Content */}
+              <div
+                className="dash-card bg-white rounded-xl p-5"
+                style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <Flag size={14} color="#6B7280" />
+                  <span style={{ fontSize: 12, fontWeight: 600, color: '#6B7280' }}>Flagged Content</span>
+                </div>
+                <p style={{ fontSize: 30, fontWeight: 700, color: '#111827', lineHeight: 1 }}>24</p>
+                <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 4, lineHeight: 1.4 }}>Pending review from today</p>
+              </div>
+
+              {/* Verification Requests */}
+              <div
+                className="dash-card bg-white rounded-xl p-5"
+                style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <FileCheck size={14} color="#6B7280" />
+                  <span style={{ fontSize: 12, fontWeight: 600, color: '#6B7280' }}>Verification Requests</span>
+                </div>
+                <p style={{ fontSize: 30, fontWeight: 700, color: '#111827', lineHeight: 1 }}>152</p>
+                <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 4, lineHeight: 1.4 }}>Average wait time: 14h</p>
+              </div>
+            </div>
+
+            {/* System Alert */}
+            {alertVisible && (
+              <div
+                className="rounded-xl p-5"
+                style={{
+                  background: '#FFFBEB',
+                  border: '1px solid #FCD34D',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+                  opacity: alertFading ? 0 : 1,
+                  transform: alertFading ? 'translateY(8px)' : 'translateY(0)',
+                  transition: 'opacity 0.4s ease, transform 0.4s ease',
+                }}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle size={16} color="#D97706" />
+                    <span style={{ fontSize: 13, fontWeight: 700, color: '#92400E' }}>System Alert</span>
+                  </div>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: '#EA580C', letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
+                    HIGH PRIORITY
+                  </span>
+                </div>
+                <p style={{ fontSize: 12, color: '#92400E', lineHeight: 1.6, marginBottom: 12 }}>
+                  Detected a 300% spike in withdrawal requests from region: SEA. Possible coordinated exploit or viral event. Security protocols active.
+                </p>
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={() => console.log('Investigating logs...')}
+                    style={{ fontSize: 12, fontWeight: 600, color: '#D97706', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}
+                  >
+                    Investigate Log
+                  </button>
+                  <button
+                    onClick={dismissAlert}
+                    style={{ fontSize: 12, fontWeight: 600, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}
+                  >
+                    Dismiss Alert
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
       </div>
-    
-    </div>
+    </>
   );
 }

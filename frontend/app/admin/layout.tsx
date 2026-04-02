@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Users, Shield, DollarSign, LayoutGrid, MessageSquare, Settings, Search, FileText, UserPlus, HelpCircle } from 'lucide-react';
+import { Home, Shield, DollarSign, LayoutGrid, MessageSquare, Settings, Search, FileText, UserPlus, HelpCircle, Brush, BarChart3, Monitor } from 'lucide-react';
 
 export default function CreatorLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -40,20 +40,26 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
           <Link href="/admin/dashboard" className={isActive('/admin/dashboard')}>
             <Home className="w-4 h-4" /> Dashboard
           </Link>
-          <Link href="/admin/users" className={isActive('/admin/users')}>
-            <Users className="w-4 h-4" /> Users
+          <Link href="/admin/creators" className={isActive('/admin/creators')}>
+            <Brush className="w-4 h-4" /> Creators
+          </Link>
+          <Link href="/admin/creator-analytics" className={isActive('/admin/creator-analytics')}>
+            <FileText className="w-4 h-4" /> Creator Analytics
           </Link>
           <Link href="/admin/moderation" className={isActive('/admin/moderation')}>
             <Shield className="w-4 h-4" /> Moderation
           </Link>
-          <Link href="/admin/financial" className={isActive('/admin/financial')}>
-            <DollarSign className="w-4 h-4" /> Financial
+          <Link href="/admin/revenue" className={isActive('/admin/revenue')}>
+            <DollarSign className="w-4 h-4" /> Revenue
           </Link>
           <Link href="/admin/platform" className={isActive('/admin/platform')}>
             <LayoutGrid className="w-4 h-4" /> Platform
           </Link>
+          <Link href="/admin/admin-management" className={isActive('/admin/admin-management')}>
+            <Monitor className="w-4 h-4" /> Admin Management
+          </Link>
           <Link href="/admin/support" className={isActive('/admin/support')}>
-            <MessageSquare className="w-4 h-4" /> Support
+            <HelpCircle className="w-4 h-4" /> Support
           </Link>
           <Link href="/admin/settings" className={isActive('/admin/settings')}>
             <Settings className="w-4 h-4" /> Settings

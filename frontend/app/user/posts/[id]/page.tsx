@@ -17,6 +17,7 @@ export default function UserPostDetailPage({ params }: { params: Promise<{ id: s
   const { id } = use(params);
   const [post, setPost] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [unavailableMessage, setUnavailableMessage] = useState('');
   const [isMemModalOpen, setIsMemModalOpen] = useState(false);
 
   const handleFavoriteToggle = async () => {
@@ -34,8 +35,11 @@ export default function UserPostDetailPage({ params }: { params: Promise<{ id: s
       try {
         const res = await api.get(`/user/posts/${id}`);
         setPost(res.data);
-      } catch (err) {
+        setUnavailableMessage('');
+      } catch (err: any) {
         console.error("Error fetching post:", err);
+        setPost(null);
+        setUnavailableMessage(err?.response?.data?.message || 'Post not found.');
       } finally {
         setLoading(false);
       }
@@ -77,7 +81,16 @@ export default function UserPostDetailPage({ params }: { params: Promise<{ id: s
   };
 
   if (loading) return <div className="min-h-screen bg-[#f6f4f1] flex items-center justify-center">Loading...</div>;
-  if (!post) return <div className="min-h-screen bg-[#f6f4f1] flex items-center justify-center">Post not found.</div>;
+  if (!post) {
+    return (
+      <div className="min-h-screen bg-[#f6f4f1] flex items-center justify-center p-6">
+        <div className="max-w-xl w-full rounded-2xl border border-[#e4ded2] bg-white/80 backdrop-blur-sm p-8 text-center">
+          <h2 className="text-2xl font-bold text-[#1a1a1a] mb-2">Post unavailable</h2>
+          <p className="text-[#5a5a5a]">{unavailableMessage || 'Post not found.'}</p>
+        </div>
+      </div>
+    );
+  }
 
   const creatorId = post.creatorId?._id || post.creatorId;
   const creatorName = post.creatorId?.name || "Creator";

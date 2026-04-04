@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from 'react';
-import { MoreHorizontal, Loader2 } from 'lucide-react';
+import { AlertTriangle, MoreHorizontal, Loader2 } from 'lucide-react';
 import api from '@/src/lib/api';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
@@ -23,6 +23,27 @@ const getErrorMessage = (error: unknown, fallback: string) => {
   }
 
   return fallback;
+};
+
+const getNotificationTheme = (notification: CreatorNotification) => {
+  const isModerationAlert = notification.type === 'system';
+  if (!isModerationAlert) {
+    return {
+      wrapper: 'bg-white border-slate-200/60',
+      secondaryWrapper: 'bg-white border-slate-200/60',
+      badge: null,
+    };
+  }
+
+  return {
+    wrapper: 'bg-amber-50 border-amber-200',
+    secondaryWrapper: 'bg-amber-50/80 border-amber-200',
+    badge: (
+      <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-amber-600 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-white">
+        <AlertTriangle className="w-3 h-3" /> Moderation
+      </span>
+    ),
+  };
 };
 
 export default function NotificationsPage() {
@@ -121,26 +142,31 @@ export default function NotificationsPage() {
           <div>
              <h2 className="text-[13px] font-bold text-slate-400 mb-6 uppercase tracking-widest px-2">Today</h2>
              <div className="space-y-3">
-                {todayNotifications.map((n) => (
-                  <div 
-                    key={n._id} 
-                    onClick={() => markAsRead(n)}
-                    className="bg-white border border-slate-200/60 rounded-2xl p-6 flex justify-between items-center hover:shadow-sm transition-shadow group cursor-pointer"
-                  >
-                      <div className="flex items-start gap-4">
-                         <div className={`w-1.5 h-1.5 rounded-full bg-rose-500 mt-2.5 shrink-0 ${n.isRead ? 'opacity-0' : 'opacity-100'}`}></div>
-                         <div>
-                            <h3 className="text-base font-bold text-[#1c1917] mb-1">
-                              {n.content}
-                            </h3>
-                            <p className="text-[13px] font-bold text-slate-400">{new Date(n.createdAt).toLocaleDateString()} | {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                         </div>
-                      </div>
-                      <button className="text-slate-300 hover:text-slate-600 transition-colors">
-                         <MoreHorizontal className="w-5 h-5" />
-                      </button>
-                  </div>
-                ))}
+                {todayNotifications.map((n) => {
+                  const theme = getNotificationTheme(n);
+
+                  return (
+                    <div 
+                      key={n._id} 
+                      onClick={() => markAsRead(n)}
+                      className={`border rounded-2xl p-6 flex justify-between items-center hover:shadow-sm transition-shadow group cursor-pointer ${theme.wrapper}`}
+                    >
+                        <div className="flex items-start gap-4">
+                           <div className={`w-1.5 h-1.5 rounded-full bg-rose-500 mt-2.5 shrink-0 ${n.isRead ? 'opacity-0' : 'opacity-100'}`}></div>
+                           <div>
+                              <h3 className="text-base font-bold text-[#1c1917] mb-1">
+                                {n.content}
+                              </h3>
+                              {theme.badge}
+                              <p className="text-[13px] font-bold text-slate-400">{new Date(n.createdAt).toLocaleDateString()} | {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                           </div>
+                        </div>
+                        <button className="text-slate-300 hover:text-slate-600 transition-colors">
+                           <MoreHorizontal className="w-5 h-5" />
+                        </button>
+                    </div>
+                  );
+                })}
                 {todayNotifications.length === 0 && <p className="text-sm text-slate-400 px-2">No notifications today.</p>}
              </div>
           </div>
@@ -149,26 +175,31 @@ export default function NotificationsPage() {
           <div>
              <h2 className="text-[13px] font-bold text-slate-400 mb-6 uppercase tracking-widest px-2">Earlier</h2>
              <div className="space-y-3">
-                 {earlierNotifications.map((n) => (
-                  <div 
-                    key={n._id} 
-                    onClick={() => markAsRead(n)}
-                    className="bg-white border border-slate-200/60 rounded-2xl p-6 flex justify-between items-center hover:shadow-sm transition-shadow group cursor-pointer opacity-80 hover:opacity-100"
-                  >
-                      <div className="flex items-start gap-4">
-                         <div className={`w-1.5 h-1.5 rounded-full bg-rose-500 mt-2.5 shrink-0 ${n.isRead ? 'opacity-0' : 'opacity-100'}`}></div>
-                         <div>
-                            <h3 className="text-base font-bold text-[#1c1917] mb-1">
-                              {n.content}
-                            </h3>
-                            <p className="text-[13px] font-bold text-slate-400">{new Date(n.createdAt).toLocaleDateString()} | {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                         </div>
-                      </div>
-                      <button className="text-slate-300 hover:text-slate-600 transition-colors">
-                         <MoreHorizontal className="w-5 h-5" />
-                      </button>
-                  </div>
-                ))}
+                 {earlierNotifications.map((n) => {
+                  const theme = getNotificationTheme(n);
+
+                  return (
+                    <div 
+                      key={n._id} 
+                      onClick={() => markAsRead(n)}
+                      className={`border rounded-2xl p-6 flex justify-between items-center hover:shadow-sm transition-shadow group cursor-pointer opacity-80 hover:opacity-100 ${theme.secondaryWrapper}`}
+                    >
+                        <div className="flex items-start gap-4">
+                           <div className={`w-1.5 h-1.5 rounded-full bg-rose-500 mt-2.5 shrink-0 ${n.isRead ? 'opacity-0' : 'opacity-100'}`}></div>
+                           <div>
+                              <h3 className="text-base font-bold text-[#1c1917] mb-1">
+                                {n.content}
+                              </h3>
+                              {theme.badge}
+                              <p className="text-[13px] font-bold text-slate-400">{new Date(n.createdAt).toLocaleDateString()} | {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                           </div>
+                        </div>
+                        <button className="text-slate-300 hover:text-slate-600 transition-colors">
+                           <MoreHorizontal className="w-5 h-5" />
+                        </button>
+                    </div>
+                  );
+                })}
                 {earlierNotifications.length === 0 && <p className="text-sm text-slate-400 px-2">No earlier notifications.</p>}
              </div>
           </div>

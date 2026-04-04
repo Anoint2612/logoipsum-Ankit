@@ -19,6 +19,8 @@ interface Post {
   comments: number;
   createdAt: string;
   isExclusive?: boolean;
+  policyViolationLocked?: boolean;
+  policyViolationLabel?: string;
 }
 
 export default function LibraryCard({ post }: { post: Post }) {
@@ -45,7 +47,13 @@ export default function LibraryCard({ post }: { post: Post }) {
   return (
     <Link
       href={`/user/posts/${post._id}`}
-      className="block bg-[#fcfaf7] border-[0.5px] border-[#e4ded2] rounded-[12px] shadow-[0px_4px_4px_0px_rgba(228,222,210,0.25)] w-full hover:shadow-md transition-shadow"
+      onClick={(e) => {
+        if (post.policyViolationLocked) {
+          e.preventDefault();
+        }
+      }}
+      aria-disabled={post.policyViolationLocked ? true : undefined}
+      className={`block bg-[#fcfaf7] border-[0.5px] border-[#e4ded2] rounded-[12px] shadow-[0px_4px_4px_0px_rgba(228,222,210,0.25)] w-full transition-shadow ${post.policyViolationLocked ? 'cursor-not-allowed' : 'hover:shadow-md'}`}
     >
       <div className="flex flex-col gap-[12px] p-[12px]">
       
@@ -81,7 +89,19 @@ export default function LibraryCard({ post }: { post: Post }) {
 
       {/* Image */}
         <div className="flex flex-col h-[200px] justify-end p-[12px] relative rounded-[12px] overflow-hidden w-full cursor-pointer group">
-          <Image src={getThumbnailSrc()} alt={post.title} fill className="object-cover transition-transform group-hover:scale-105" />
+          <Image
+            src={getThumbnailSrc()}
+            alt={post.title}
+            fill
+            className={`object-cover transition-transform ${post.policyViolationLocked ? 'blur-[2px] scale-105' : 'group-hover:scale-105'}`}
+          />
+          {post.policyViolationLocked && (
+            <div className="absolute inset-0 bg-black/45 z-10 flex items-center justify-center">
+              <span className="px-3 py-1.5 rounded-full bg-amber-600 text-white text-[11px] font-bold tracking-wide uppercase">
+                {post.policyViolationLabel || 'Policy Violation'}
+              </span>
+            </div>
+          )}
           {post.isExclusive && (
             <div className="bg-[rgba(26,26,26,0.5)] flex items-center justify-center px-[8px] py-[4px] gap-[4px] relative rounded-[32px] shrink-0 self-start z-10 backdrop-blur-sm">
               <Lock className="size-[12px] text-white" strokeWidth={3} />

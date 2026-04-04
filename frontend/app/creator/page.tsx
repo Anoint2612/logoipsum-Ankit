@@ -273,6 +273,11 @@ export default function CreatorHomePage() {
                                   <Lock className="w-2.5 h-2.5" /> Exclusive
                                </div>
                              )}
+                             {post.policyViolationLocked && (
+                               <div className="mt-2 bg-amber-600/90 backdrop-blur-md px-2 py-1 rounded-md text-[9px] font-black text-white uppercase tracking-widest border border-amber-300/30">
+                                 {post.policyViolationLabel || 'Policy Violation'}
+                               </div>
+                             )}
                           </div>
                           <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between pointer-events-none">
                              <div className="flex items-center gap-3 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full text-white text-[10px] font-black border border-white/10">

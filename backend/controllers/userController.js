@@ -157,7 +157,11 @@ exports.getCreators = async (req, res) => {
     
     // Attach recent posts to each creator
     const creatorsWithPosts = await Promise.all(creators.map(async (creator) => {
-      const posts = await Post.find({ creatorId: creator._id, status: 'published' })
+      const posts = await Post.find({
+        creatorId: creator._id,
+        status: 'published',
+        policyViolationLocked: { $ne: true },
+      })
         .sort({ createdAt: -1 })
         .limit(6);
       return {
@@ -204,7 +208,7 @@ exports.getCreatorProfile = async (req, res) => {
 
     // Compute real stats in parallel
     const [postsCount, ratingAgg] = await Promise.all([
-      Post.countDocuments({ creatorId: creator._id, status: 'published' }),
+      Post.countDocuments({ creatorId: creator._id, status: 'published', policyViolationLocked: { $ne: true } }),
       Review.aggregate([
         { $match: { creator: creator._id } },
         { $group: { _id: null, avg: { $avg: '$rating' }, count: { $sum: 1 } } }
@@ -258,7 +262,9 @@ exports.getCreatorPosts = async (req, res) => {
       }
     }
 
-    const filteredPosts = posts.map(post => {
+    const visiblePosts = isAdmin ? posts : posts.filter((post) => !post.policyViolationLocked);
+
+    const filteredPosts = visiblePosts.map(post => {
       const accessInfo = getPostAccessInfo({ post, memberships, userId, isAdmin });
       return {
         ...post.toObject(),
@@ -353,14 +359,9 @@ exports.getPostDetails = async (req, res) => {
 
     let isFavorited = false;
     let accessInfo = getPostAccessInfo({ post, memberships: [], userId: null, isAdmin: false });
+    let viewerIsAdmin = false;
     
     if (userId) {
-      // Increment views and track unique viewers
-      await Post.findByIdAndUpdate(req.params.id, {
-        $inc: { views: 1 },
-        $addToSet: { uniqueViewers: userId }
-      });
-
       const reaction = await Reaction.findOne({ user: userId, post: post._id });
       if (reaction) {
         userReaction = reaction.type;
@@ -368,6 +369,7 @@ exports.getPostDetails = async (req, res) => {
       
       const user = await User.findById(userId);
       if (user) {
+        viewerIsAdmin = user.role === 'admin';
         if (user.favorites && user.favorites.some(favId => favId && favId.toString() === post._id.toString())) {
           isFavorited = true;
         }
@@ -375,9 +377,21 @@ exports.getPostDetails = async (req, res) => {
           post,
           memberships: user.memberships || [],
           userId,
-          isAdmin: user.role === 'admin',
+          isAdmin: viewerIsAdmin,
         });
       }
+    }
+
+    if (post.policyViolationLocked && !viewerIsAdmin) {
+      return res.status(403).json({ message: 'This post is unavailable due to policy violation.' });
+    }
+
+    if (userId) {
+      // Increment views and track unique viewers
+      await Post.findByIdAndUpdate(req.params.id, {
+        $inc: { views: 1 },
+        $addToSet: { uniqueViewers: userId }
+      });
     } else {
       // For guests
       await Post.findByIdAndUpdate(req.params.id, { $inc: { views: 1 } });

@@ -3,6 +3,7 @@ const Ban = require('../models/BanModel');
 const AdminLog = require('../models/AdminLogModel');
 const Post = require('../../../backend/models/Post');
 const Message = require('../../../backend/models/Message');
+const Notification = require('../../../backend/models/Notification');
 const { issueBan, liftBan } = require('../services/ban.service');
 const { createNotification } = require('../services/notification.service');
 const { log } = require('../services/adminLog.service');
@@ -87,7 +88,7 @@ async function getReportDetail(req, res) {
 }
 
 /**
- * Resolve/dismiss report and optionally issue ban.
+ * Resolve/dismiss report and optionally issue ban/lock.
  */
 async function resolveReport(req, res) {
   try {
@@ -95,8 +96,74 @@ async function resolveReport(req, res) {
     const report = await Report.findById(req.params.id);
     if (!report) return res.status(404).json({ message: 'Report not found.' });
 
-    if (!['ban', 'dismiss'].includes(action)) {
+    if (!['ban', 'dismiss', 'lock_post'].includes(action)) {
       return res.status(400).json({ message: 'Invalid action.' });
+    }
+
+    if (action === 'lock_post') {
+      if (report.targetType !== 'post') {
+        return res.status(400).json({ message: 'Lock post can only be used for post reports.' });
+      }
+
+      const post = await Post.findById(report.targetId);
+      if (!post) {
+        return res.status(404).json({ message: 'Reported post not found.' });
+      }
+
+      post.policyViolationLocked = true;
+      post.policyViolationLabel = 'Policy Violation';
+      post.policyViolationLockedAt = new Date();
+      post.policyViolationLockedBy = req.user._id;
+      post.status = 'archived';
+      await post.save();
+
+      report.status = 'resolved';
+      report.resolution = reason || 'Post locked for policy violation.';
+      report.resolvedBy = req.user._id;
+      await report.save();
+
+      await createNotification(
+        report.reportedBy,
+        'report_update',
+        'Report resolved',
+        'Action has been taken on your report.',
+        { reportId: report._id, action: 'lock_post' }
+      );
+
+      await Notification.create({
+        recipient: report.reportedBy,
+        sender: req.user._id,
+        type: 'system',
+        content: `Your report was accepted. The post "${post.title}" was locked for policy violation.`,
+        relatedId: post._id,
+      });
+
+      if (report.targetOwnerId) {
+        await createNotification(
+          report.targetOwnerId,
+          'report_update',
+          'Content locked',
+          'One of your posts has been locked for policy violation.',
+          { reportId: report._id, postId: post._id, action: 'lock_post' }
+        );
+
+        if (String(report.targetOwnerId) !== String(report.reportedBy)) {
+          await Notification.create({
+            recipient: report.targetOwnerId,
+            sender: req.user._id,
+            type: 'system',
+            content: `Your post "${post.title}" was locked due to policy violation.`,
+            relatedId: post._id,
+          });
+        }
+      }
+
+      await log(req.user._id, 'report_resolved', report._id, 'report', reason || '', {
+        action,
+        postId: post._id,
+      });
+
+      return res.status(200).json({ message: 'Post locked successfully.', postId: post._id });
     }
 
     if (action === 'ban') {

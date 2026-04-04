@@ -261,6 +261,11 @@ export default function CreatorProfilePage() {
                                      <Lock className="w-3 h-3" /> Exclusive
                                   </div>
                                 )}
+                                {post.policyViolationLocked && (
+                                  <div className="absolute right-4 top-4 bg-amber-600/90 backdrop-blur-xl px-3 py-1.5 rounded-full text-white text-[10px] font-black tracking-widest border border-amber-200/30 uppercase">
+                                     {post.policyViolationLabel || 'Policy Violation'}
+                                  </div>
+                                )}
                              </div>
                              <div className="p-6">
                                 <h3 className="text-[15px] font-bold text-[#1c1917] mb-2 leading-tight group-hover:text-rose-500 transition-colors font-['Fjalla_One'] uppercase">{post.title}</h3>

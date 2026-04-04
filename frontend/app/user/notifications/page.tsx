@@ -3,18 +3,38 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import DashboardSidebar from '@/src/components/UserDashboard/DashboardSidebar';
 import api from '@/src/lib/api';
-import { Loader2 } from 'lucide-react';
+import { AlertTriangle, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '@/src/store/useAuthStore';
 import { useIsMounted } from '@/src/hooks/useIsMounted';
 
 interface AppNotification {
   _id: string;
+  type?: string;
   content: string;
   isRead: boolean;
   createdAt: string;
   relatedId?: string;
 }
+
+const getNotificationTheme = (notification: AppNotification) => {
+  const isModerationAlert = notification.type === 'system';
+  if (!isModerationAlert) {
+    return {
+      wrapper: 'bg-[#fcfaf7] border-[#e4ded2] hover:bg-[#f6f4f1]',
+      badge: null,
+    };
+  }
+
+  return {
+    wrapper: 'bg-amber-50 border-amber-200 hover:bg-amber-100/80',
+    badge: (
+      <span className="inline-flex items-center gap-1 rounded-full bg-amber-600 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-white">
+        <AlertTriangle className="size-3" /> Moderation
+      </span>
+    ),
+  };
+};
 
 const getErrorMessage = (error: unknown, fallback: string) => {
   if (typeof error === 'object' && error !== null && 'response' in error) {
@@ -144,29 +164,34 @@ export default function NotificationsPage() {
         </p>
       ) : (
         <div className="flex flex-col gap-[4px] w-full">
-          {items.map((notification) => (
-            <div
-              key={notification._id}
-              onClick={() => markAsRead(notification)}
-              className="bg-[#fcfaf7] border-[0.5px] border-[#e4ded2] flex items-center p-[12px] rounded-[8px] w-full cursor-pointer hover:bg-[#f6f4f1] transition-colors"
-            >
-              <div className="flex flex-1 items-start justify-between gap-[8px]">
-                <div className="flex items-start gap-[8px] h-full">
-                  <span
-                    className={`mt-[8px] size-[8px] rounded-full bg-[#f95c4b] ${notification.isRead ? 'opacity-0' : 'opacity-100'}`}
-                  />
-                  <div className="flex flex-col gap-[4px]">
-                    <p className="font-[family-name:var(--font-figtree)] font-medium text-[16px] leading-[25.8px] tracking-[0.32px] text-[#1a1a1a]">
-                      {notification.content}
-                    </p>
-                    <p className="font-[family-name:var(--font-figtree)] font-medium text-[13px] leading-[18.3px] tracking-[0.26px] text-[#5a5a5a]">
-                      {formatDateTime(notification.createdAt, isMounted)}
-                    </p>
+          {items.map((notification) => {
+            const theme = getNotificationTheme(notification);
+
+            return (
+              <div
+                key={notification._id}
+                onClick={() => markAsRead(notification)}
+                className={`border-[0.5px] flex items-center p-[12px] rounded-[8px] w-full cursor-pointer transition-colors ${theme.wrapper}`}
+              >
+                <div className="flex flex-1 items-start justify-between gap-[8px]">
+                  <div className="flex items-start gap-[8px] h-full">
+                    <span
+                      className={`mt-[8px] size-[8px] rounded-full bg-[#f95c4b] ${notification.isRead ? 'opacity-0' : 'opacity-100'}`}
+                    />
+                    <div className="flex flex-col gap-[4px]">
+                      <p className="font-[family-name:var(--font-figtree)] font-medium text-[16px] leading-[25.8px] tracking-[0.32px] text-[#1a1a1a]">
+                        {notification.content}
+                      </p>
+                      {theme.badge}
+                      <p className="font-[family-name:var(--font-figtree)] font-medium text-[13px] leading-[18.3px] tracking-[0.26px] text-[#5a5a5a]">
+                        {formatDateTime(notification.createdAt, isMounted)}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

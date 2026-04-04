@@ -133,6 +133,15 @@ export default function AdminReportsPage() {
                 ))}
               </div>
 
+              {selected.targetType === 'post' ? (
+                <button
+                  className="mt-3 px-4 py-2 rounded-lg bg-amber-600 text-white"
+                  onClick={() => resolve('lock_post')}
+                >
+                  Lock Post
+                </button>
+              ) : null}
+
               <button className="mt-3 px-4 py-2 rounded-lg bg-slate-900 text-white" onClick={() => resolve('dismiss')}>
                 Dismiss
               </button>

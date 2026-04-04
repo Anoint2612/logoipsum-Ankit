@@ -143,12 +143,19 @@ export default function ContentLibraryPage() {
                 <tr key={item._id} className="hover:bg-slate-50 transition-colors cursor-pointer group">
                   <td className="px-8 py-5">
                     <div className="flex items-center gap-5">
-                      <div className="w-14 h-12 flex items-center justify-center bg-slate-50 rounded-xl border border-slate-200 shadow-sm shrink-0">
+                      <div className="w-14 h-12 flex items-center justify-center bg-slate-50 rounded-xl border border-slate-200 shadow-sm shrink-0 relative overflow-hidden">
                          {item.mediaType === 'file' ? (
                            <div className="text-3xl">📄</div>
                          ) : (
                            <img src={item.thumbnailUrl || item.mediaUrl || 'https://via.placeholder.com/100'} alt="Post" className="w-full h-full object-cover rounded-xl" />
                          )}
+                         {item.policyViolationLocked ? (
+                           <div className="absolute inset-0 bg-black/55 flex items-center justify-center px-1 text-center">
+                             <span className="text-[8px] font-black uppercase tracking-wide text-amber-200">
+                               {item.policyViolationLabel || 'Policy Violation'}
+                             </span>
+                           </div>
+                         ) : null}
                       </div>
                       <span className="text-[15px] font-bold text-[#1c1917] group-hover:text-rose-500 transition-colors leading-tight">{item.title}</span>
                     </div>

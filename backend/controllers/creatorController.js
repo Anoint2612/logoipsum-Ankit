@@ -45,7 +45,9 @@ const getDashboardData = async (req, res) => {
       likes: p.likes || 0,
       comments: p.comments || 0,
       thumbnailUrl: p.thumbnailUrl || (p.mediaType === 'image' ? p.mediaUrl : ''),
-      mediaUrl: p.mediaUrl
+      mediaUrl: p.mediaUrl,
+      policyViolationLocked: !!p.policyViolationLocked,
+      policyViolationLabel: p.policyViolationLabel || ''
     })).sort((a,b) => b.date - a.date).slice(0, 10);
 
     // Month breakdown (real-ish, normally you'd use aggregation)

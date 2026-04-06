@@ -11,6 +11,10 @@ import { useBanStore } from '@/src/store/useBanStore';
 import { useNotifications } from '@/src/hooks/useNotifications';
 import BanPopup from '@/src/components/ban/BanPopup';
 import SupportNavItem from '@/UserSupport/components/SupportNavItem';
+import SubscriptionNavItem from '@/CreatorSubscription/components/SubscriptionNavItem';
+import OnboardingSubscriptionPopup from '@/CreatorSubscription/components/OnboardingSubscriptionPopup';
+import { useSubscription } from '@/CreatorSubscription/hooks/useSubscription';
+import { useOnboardingPopup } from '@/CreatorSubscription/hooks/useOnboardingPopup';
 
 export default function CreatorLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -27,6 +31,13 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
   const clearBanState = useBanStore((state) => state.clearBanState);
   const openBanPopup = useBanStore((state) => state.openBanPopup);
   const canAppeal = useBanStore((state) => state.canAppeal);
+  const { subscription, refresh: refreshSubscription } = useSubscription();
+  const {
+    showPopup,
+    isExistingCreator,
+    dismissPopup,
+    setShowPopup,
+  } = useOnboardingPopup(user?.role === 'creator');
 
   useNotifications(user?.role === 'creator' ? 'creator' : 'user');
 
@@ -66,6 +77,31 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
 
   const isBanned = Boolean(activeBan?.isActive);
   const showAppealBadge = isBanned && canAppeal;
+
+  const activateFreeFromPopup = async () => {
+    try {
+      await api.post('/creator/subscription/free');
+      await refreshSubscription();
+    } catch (_error) {
+      // non-blocking
+    }
+    setShowPopup(false);
+  };
+
+  const activateProFromPopup = async () => {
+    try {
+      await api.post('/creator/subscription/pro');
+      await refreshSubscription();
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || 'Unable to activate Pro plan');
+    }
+    setShowPopup(false);
+  };
+
+  const enterpriseSubmittedFromPopup = async () => {
+    await refreshSubscription();
+    setShowPopup(false);
+  };
 
   const onRestrictedNavClick = () => {
     if (!isBanned) return;
@@ -130,6 +166,11 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
             </span>
             Appeal
           </Link>
+          <SubscriptionNavItem
+            currentPlan={subscription?.plan ?? 'free'}
+            status={subscription?.status ?? 'active'}
+            className={isActive('/creator/subscription')}
+          />
           {isBanned ? (
             <button
               type="button"
@@ -345,6 +386,16 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
       )}
 
       <BanPopup />
+      {showPopup && user?.role === 'creator' ? (
+        <OnboardingSubscriptionPopup
+          isExistingCreator={isExistingCreator}
+          subscription={subscription}
+          onSkip={dismissPopup}
+          onActivateFree={activateFreeFromPopup}
+          onActivatePro={activateProFromPopup}
+          onEnterpriseSubmitted={enterpriseSubmittedFromPopup}
+        />
+      ) : null}
     </div>
   );
 }

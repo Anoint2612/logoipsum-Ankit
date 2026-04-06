@@ -34,9 +34,11 @@ const {
   getBlockStatus,
   markConversationSeen
 } = require('../controllers/creatorController');
+const creatorSubscriptionRoutes = require('../../frontend/CreatorSubscription/routes/subscription.routes');
 
 router.use(protect);
 router.use(authorize('creator'));
+router.use('/subscription', creatorSubscriptionRoutes);
 
 router.get('/dashboard', getDashboardData);
 router.get('/features', getFeatureAvailability);

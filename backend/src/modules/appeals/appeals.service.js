@@ -140,15 +140,20 @@ const createAppeal = async ({ userId, payload }) => {
 
   const attachmentList = Array.isArray(payload?.attachments) ? payload.attachments : [];
 
-  const appeal = await Appeal.create({
+  const appealPayload = {
     creatorId: userId,
-    banId,
     appealType,
     postIds,
     reason: validated.reason,
     supportingInfo: validated.supportingInfo || '',
     attachments: attachmentList
-  });
+  };
+
+  if (banId) {
+    appealPayload.banId = banId;
+  }
+
+  const appeal = await Appeal.create(appealPayload);
 
   try {
     const ticket = await createTicket({

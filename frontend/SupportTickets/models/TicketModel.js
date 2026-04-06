@@ -12,7 +12,7 @@ const counterSchema = new mongoose.Schema(
 const ticketSchema = new mongoose.Schema(
   {
     ticketId: { type: String, required: true, unique: true, index: true },
-    reportId: { type: mongoose.Schema.Types.ObjectId, ref: 'Report', default: null },
+    reportId: { type: mongoose.Schema.Types.ObjectId, ref: 'ModerationReport', default: null },
     sourceType: {
       type: String,
       enum: ['user_report', 'user_submitted'],
